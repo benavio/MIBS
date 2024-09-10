@@ -1,0 +1,140 @@
+-- -----------------------------------------------------------------------------
+-- MIB NAME : 802.1x guest VLAN Common mib
+-- FILE NAME: dot1xmgmt.mib
+-- DATE     : 2013/02/20
+-- VERSION  : 2.01
+-- PURPOSE  : To construct the MIB structure of 802.1x guest VLAN management
+--            for proprietary enterprise
+-- -----------------------------------------------------------------------------
+-- MODIFICTION HISTORY:
+-- -----------------------------------------------------------------------------
+-- 
+-- Version 2.01,2013/02/20, Jessy Ji
+--  [New Object]
+-- [1]add object swDot1xTrapState;
+-- [2]add trap-related objects: swDot1xLoggedSuccess, swDot1xLoggedFail, 
+--    swDot1XAuthUserName;
+--
+-- Version 2.00, 2007/03/27, Yedda
+-- This is the first formal version for universal MIB definition.
+-- -----------------------------------------------------------------------------
+
+Dot1xMGMT-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+        TEXTUAL-CONVENTION	, DisplayString
+        								FROM SNMPv2-TC
+        MODULE-IDENTITY, OBJECT-TYPE,
+        Integer32						FROM SNMPv2-SMI
+        swDot1xAuthPortNumber, swDot1xAuthVID, swDot1xAuthMACAddress FROM AUTH-MIB
+        dlink-common-mgmt				FROM DLINK-ID-REC-MIB;
+
+	swdot1xMGMTMIB  MODULE-IDENTITY
+            LAST-UPDATED "1302200000Z"
+            ORGANIZATION "D-Link Crop."
+	    CONTACT-INFO
+	        "http://support.dlink.com"
+	    DESCRIPTION
+		    "The Structure of 802.1X guest VLAN for the proprietary enterprise."
+		    ::= { dlink-common-mgmt 30 }
+
+
+PortList                ::= OCTET STRING(SIZE (0..127))
+
+dot1xGuestVlan        OBJECT IDENTIFIER ::= { swdot1xMGMTMIB 1 }
+
+
+-- -----------------------------------------------------------------------------
+-- The Guest Vlan Group
+-- -----------------------------------------------------------------------------
+dot1xGuestVlanName OBJECT-TYPE
+    SYNTAX      DisplayString(SIZE(1..32))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The VLAN name of guest VLAN."
+    ::= { dot1xGuestVlan 1 }
+
+dot1xGuestVlanPort OBJECT-TYPE
+    SYNTAX      PortList
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object indicates the guest VLAN port members of this device."
+     ::= { dot1xGuestVlan 2 }
+
+dot1xGuestVlanDelState OBJECT-TYPE
+    SYNTAX      INTEGER{
+    		none(1),
+    		start(2)
+    		}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Used to delete the guest VLAN."
+    ::= { dot1xGuestVlan 3 }
+
+swDot1xTrapState OBJECT-TYPE
+    SYNTAX  INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "This object is used to enable or disable the sending of 802.1X traps."
+    DEFVAL    {enabled}
+    ::= { swdot1xMGMTMIB 10 }
+
+-- -----------------------------------------------------------------------------
+-- Add common trap management
+-- -----------------------------------------------------------------------------
+        swDot1xTrap     OBJECT IDENTIFIER ::= { swdot1xMGMTMIB 11 }
+
+        swDot1xNotify   OBJECT IDENTIFIER ::= { swDot1xTrap 1 }
+
+        swDot1xNotifyPrefix OBJECT IDENTIFIER ::= { swDot1xNotify 0 }    
+        
+     swDot1xLoggedSuccess  NOTIFICATION-TYPE
+        OBJECTS   {
+         swDot1xAuthPortNumber,
+         swDot1xAuthVID,
+         swDot1xAuthMACAddress,
+         swDot1XAuthUserName
+                  }
+          STATUS  current
+          DESCRIPTION
+            "The trap is sent when a dot1x Supplicant has successfully logged in."
+        ::={swDot1xNotifyPrefix 1}    
+
+     swDot1xLoggedFail  NOTIFICATION-TYPE
+        OBJECTS   {
+                     swDot1xAuthPortNumber,
+                     swDot1xAuthVID,
+                     swDot1xAuthMACAddress,
+                     swDot1XAuthUserName,
+                     swDot1XAuthFailReason
+                  }
+          STATUS  current
+          DESCRIPTION
+            "The trap is sent when a dot1x Supplicant fails to login."
+        ::={swDot1xNotifyPrefix 2}    
+
+    swDot1xNotifyBindings OBJECT IDENTIFIER ::= { swDot1xNotify 1 }
+
+        swDot1XAuthUserName  OBJECT-TYPE
+        SYNTAX        DisplayString(SIZE(0..128))
+        MAX-ACCESS accessible-for-notify
+        STATUS     current
+        DESCRIPTION
+            "The user name the dot1x Supplicant uses to start 802.1X 
+            authentication."
+        ::= { swDot1xNotifyBindings 1}  
+
+    swDot1XAuthFailReason  OBJECT-TYPE
+        SYNTAX        DisplayString(SIZE(1..255))
+        MAX-ACCESS accessible-for-notify
+        STATUS     current
+        DESCRIPTION
+            "The reason for failed authentication."
+        ::= { swDot1xNotifyBindings 2}          
+END
