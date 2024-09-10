@@ -1,0 +1,1346 @@
+-- MIB NAME : ERPS Common mib
+-- FILE NAME: ERPS.mib
+-- DATE     : 2016/06/16
+-- VERSION  : 1.09
+-- PURPOSE  : To construct the MIB structure of ERPS for proprietary enterprise
+-- -----------------------------------------------------------------------------
+-- MODIFICTION HISTORY:
+-- -----------------------------------------------------------------------------
+-- Version, Date, Author
+-- Description:
+--  [New Object]
+--  [Modification]
+-- Notes: (Requested by who and which project)
+-- -----------------------------------------------------------------------------
+-- Version 1.09 2016/06/16, Eric Liu
+-- Description:
+-- [New Object]
+-- 1. update description of swERPSMgmtRAPSVlanTable, swERPSMgmtRAPSVlanEntry, 
+--    swERPSMgmtRAPSVlanId, swERPSMgmtRAPSWestPortState, swERPSMgmtRAPSRPLPort,
+--    swERPSMgmtRAPSRPLOwnerAdminState, swERPSMgmtRAPSProtectionVlan, 
+--    swERPSMgmtRAPSHoldOffTime, swERPSMgmtRAPSGuardTime, swERPSMgmtRAPSWTRTime,
+--    swERPSMgmtRAPSRingState, swERPSMgmtRAPSRingAdminState, 
+--    swERPSMgmtRAPSRPLOwnerOperStatus etc.
+-- 2. change the OID from 100 to 99 for swERPSEtherRingRowStatus, 
+--    swERPSEtherSubRingRowStatus and swERPSInstRowStatus.
+-- 3. update labels for named-number enumeration of some object as for the syntax of 
+--    INTEGER, both "hyphen" and "underscore" are illegal to define the string
+--    (according the RFC 1902 7.1.1). For example modify label major-ring(1) and 
+--    sub-ring(2) to majorRing(1) and subRing(2).
+-- -----------------------------------------------------------------------------
+-- Version 1.08 2016/05/12, Eric Liu
+-- Description:
+-- [New Object]
+-- 1. Added swERPSObject and its sub object to control or diplay the ERPS v1 
+-- and v2 function.
+-- 2. update the description of swERPSMgmtSubRingCtrlTable, swERPSMgmtRAPSVlanTable,
+-- swERPSMgmtRAPSWestPort, swERPSMgmtRAPSEastPort
+-- -----------------------------------------------------------------------------
+-- Version 1.07 2013/07/02, Sprind Xiong
+-- Description:
+-- [Modification]
+-- 1. Changed the value range of swERPSMgmtRAPSWTRTime from (5..12) to (1..12).
+-- -----------------------------------------------------------------------------
+-- Version 1.06 2010/07/16, Sprind Xiong
+-- Description:
+-- [New Object]
+-- 1. Added swERPSMgmtRAPSOperWestPort and swERPSMgmtRAPSOperEastPort to display 
+-- the actual running port.
+-- 2. Added swERPSMgmtRAPSOperRPLPort and swERPSMgmtRAPSRPLOwnerOperState to 
+-- display the actual running RPL port and RPL owner.
+-- -----------------------------------------------------------------------------
+-- Version 1.05 2010/05/06, Jefferson Li
+-- Description:
+-- [New Object]
+-- 1. Added swERPSMgmtRAPSRevertive to control the revertive operation. 
+-- -----------------------------------------------------------------------------
+-- Version 1.04 2009/11/18, Eli Lin
+-- [New Object]
+-- 1. Added swERPSMgmtRAPSRPLOwnerOperStatus to display the current operational 
+-- value of the RPL owner state. 
+-- 2. Added swERPSMgmtRAPSProtectionVlanRangeList1to64, swERPSMgmtRAPSProtectionVlanRangeList65to128, 
+-- swERPSMgmtRAPSProtectionVlanRangeList129to192, swERPSMgmtRAPSProtectionVlanRangeList193to256,
+-- swERPSMgmtRAPSProtectionVlanRangeList257to320, swERPSMgmtRAPSProtectionVlanRangeList321to384,
+-- swERPSMgmtRAPSProtectionVlanRangeList385to448 and swERPSMgmtRAPSProtectionVlanRangeList449to512.
+-- [Modification]
+-- 1.Rename swERPSMgmtRAPSRPLOwner to swERPSMgmtRAPSRPLOwnerAdminState.
+-- -----------------------------------------------------------------------------
+-- Version 1.03 2009/11/16, Danbo
+-- Description: 
+-- [New Object]
+-- 1. Added swERPSMgmtRAPSRingAdminState to indicate the administrative state of 
+--    the ring.
+-- 2. Added swERPSMgmtSubRingCtrlTable to support multiple rings.
+-- [Modification]
+-- 1. Changed the value range of swERPSMgmtRAPSWestPort and SwERPSMgmtRAPSEastPort 
+-- from "(1..65535)" to "(0|1..65535)".
+-- -----------------------------------------------------------------------------
+-- Version 1.02, 2009/07/30, Eli Lin
+-- [New Object]
+-- 1.Added swERPSTrapState to support ERPS trap state control.
+-- [Modification]
+-- 1.Added value lists "signal-fail(3)" in 
+--   swERPSMgmtRAPSWestPortState and swERPSMgmtRAPSEastPortState. 
+-- -----------------------------------------------------------------------------
+-- Version 1.01, 2009/04/10, Eli Lin
+-- Revise the name of swERPSNotificationBindings.
+-- -----------------------------------------------------------------------------
+-- Version 1.00, 2009/02/03, Jefferson Li
+-- This is the first formal version for universal MIB definition.
+-- -----------------------------------------------------------------------------
+
+    ERPS-MIB DEFINITIONS ::= BEGIN
+
+
+    IMPORTS
+              MODULE-IDENTITY, OBJECT-TYPE
+                    FROM SNMPv2-SMI
+              RowStatus,MacAddress,TruthValue,DisplayString
+                    FROM SNMPv2-TC
+              NOTIFICATION-TYPE
+                    FROM SNMPv2-SMI
+              dlink-common-mgmt 
+                    FROM DLINK-ID-REC-MIB
+              VlanIdOrNone
+              		FROM Q-BRIDGE-MIB;
+
+    swERPSMIB MODULE-IDENTITY
+        LAST-UPDATED "201605120000Z"
+        ORGANIZATION "D-Link Corp."
+        CONTACT-INFO
+            "http://support.dlink.com"
+        DESCRIPTION
+            "The MIB module for managing Ethernet Ring Protection Switching."
+        ::= { dlink-common-mgmt 78 }
+
+
+    VidList ::= OCTET STRING(SIZE (0..127)) 
+
+    swERPSCtrl                OBJECT IDENTIFIER ::= { swERPSMIB 1 }
+    swERPSInfo                OBJECT IDENTIFIER ::= { swERPSMIB 2 }
+    swERPSMgmt                OBJECT IDENTIFIER ::= { swERPSMIB 3 }
+    swERPSNotify              OBJECT IDENTIFIER ::= { swERPSMIB 4 }
+    swERPSObject              OBJECT IDENTIFIER ::= { swERPSMIB 5 }
+-- -----------------------------------------------------------------------------
+-- swERPSCtrl
+-- -----------------------------------------------------------------------------
+    swERPSAdminState OBJECT-TYPE
+        SYNTAX  INTEGER {
+               enabled(1),
+               disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the ERPS state of the bridge."
+        ::= { swERPSCtrl 1 }
+
+    swERPSLogState OBJECT-TYPE
+        SYNTAX   INTEGER {
+               enabled(1),
+               disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the ERPS log state of the bridge."
+        ::= { swERPSCtrl 2 }
+
+    swERPSTrapState OBJECT-TYPE
+        SYNTAX   INTEGER {
+               enabled(1),
+               disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the ERPS trap state of the bridge."
+        ::= { swERPSCtrl 3 } 
+
+     swERPSVersion OBJECT-TYPE
+        SYNTAX          INTEGER{
+        	g8032v1(0),
+        	g8032v2(1)        	
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the administratively configured ring version."    
+        DEFVAL { 0 }        
+        ::= { swERPSCtrl 4 }  		
+
+-- -----------------------------------------------------------------------------
+-- swERPSInfo
+-- -----------------------------------------------------------------------------
+    
+-- -----------------------------------------------------------------------------
+-- swERPSMgmt
+-- -----------------------------------------------------------------------------
+
+    swERPSMgmtRAPSVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF SwERPSMgmtRAPSVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains the ERPS ring configuration information. 
+             This is used for compatibility with old MIB. We suggest use swERPSEtherRingTable
+             and swERPSInstTable."
+        ::= { swERPSMgmt 1 }
+
+    swERPSMgmtRAPSVlanEntry OBJECT-TYPE
+        SYNTAX      SwERPSMgmtRAPSVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of the ERPS ring configuration information.
+             An entry is created when a G8032 physical ring is defined, and
+             an entry is removed when an inactive G8032 physical ring is deleted.
+             For ERPSv2 it can only contains the ring's default instance.
+             This is used for compatibility with old MIB."
+        INDEX    {swERPSMgmtRAPSVlanId}
+        ::= { swERPSMgmtRAPSVlanTable 1 }
+
+    SwERPSMgmtRAPSVlanEntry ::= SEQUENCE {
+            swERPSMgmtRAPSVlanId
+                INTEGER,
+            swERPSMgmtRAPSWestPort
+                INTEGER,
+            swERPSMgmtRAPSWestPortState
+                INTEGER,
+            swERPSMgmtRAPSEastPort
+                INTEGER,
+            swERPSMgmtRAPSEastPortState
+                INTEGER,       
+            swERPSMgmtRAPSRPLPort
+                INTEGER,  
+            swERPSMgmtRAPSRPLOwnerAdminState
+                INTEGER,
+            swERPSMgmtRAPSProtectionVlan
+                DisplayString,
+            swERPSMgmtRAPSRingMEL
+                INTEGER,
+            swERPSMgmtRAPSHoldOffTime
+                INTEGER,    
+            swERPSMgmtRAPSGuardTime
+                INTEGER,
+            swERPSMgmtRAPSWTRTime
+                INTEGER,
+            swERPSMgmtRAPSRingState
+                INTEGER,      
+            swERPSMgmtRAPSRingAdminState
+                INTEGER,
+            swERPSMgmtRAPSRPLOwnerOperStatus
+                INTEGER,
+            swERPSMgmtRAPSProtectionVlanRangeList1to64
+                OCTET STRING,
+            swERPSMgmtRAPSProtectionVlanRangeList65to128
+                OCTET STRING,
+            swERPSMgmtRAPSProtectionVlanRangeList129to192
+                OCTET STRING,
+            swERPSMgmtRAPSProtectionVlanRangeList193to256
+                OCTET STRING,
+            swERPSMgmtRAPSProtectionVlanRangeList257to320
+                OCTET STRING,
+            swERPSMgmtRAPSProtectionVlanRangeList321to384
+                OCTET STRING,
+            swERPSMgmtRAPSProtectionVlanRangeList385to448
+                OCTET STRING,
+            swERPSMgmtRAPSProtectionVlanRangeList449to512                
+                OCTET STRING,
+            swERPSMgmtRAPSRevertive
+                INTEGER,
+            swERPSMgmtRAPSOperWestPort
+                INTEGER,
+            swERPSMgmtRAPSOperEastPort
+                INTEGER,
+            swERPSMgmtRAPSOperRPLPort
+                INTEGER,  
+            swERPSMgmtRAPSRPLOwnerOperState
+                INTEGER,
+            swERPSMgmtRAPSRowStatus
+                RowStatus     
+        }
+
+    swERPSMgmtRAPSVlanId  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The R-APS VLAN is an index of the ring configuration and used to 
+             transfer R-APS messages.
+             The R-APS VLAN must already have been created by VLAN command."
+        ::= { swERPSMgmtRAPSVlanEntry 1 }
+    
+    swERPSMgmtRAPSWestPort OBJECT-TYPE
+        SYNTAX  INTEGER (0|1..65535)
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This is one of the ring ports.
+            The value 0 indicates the west port is a virtual channel."
+        ::= { swERPSMgmtRAPSVlanEntry 2 }
+
+    swERPSMgmtRAPSWestPortState OBJECT-TYPE
+        SYNTAX  INTEGER {
+                fowarding(1),
+                blocking(2),
+                signalFail(3)
+            }
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+            "This is the ring west port state. The state may change occasionally. 
+            When the west port is configured on a virtual channel, the west 
+            port state is always forwarding."
+        ::= { swERPSMgmtRAPSVlanEntry 3 }
+
+    swERPSMgmtRAPSEastPort OBJECT-TYPE
+        SYNTAX  INTEGER (0|1..65535)
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This is the other ring port.
+            The value 0 indicates the west port is a virtual channel."
+        ::= { swERPSMgmtRAPSVlanEntry 4 }
+
+    swERPSMgmtRAPSEastPortState OBJECT-TYPE
+        SYNTAX  INTEGER {
+                fowarding(1),
+                blocking(2),
+                signalFail(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+            "This is the ring east port state. The state may change occasionally. 
+            When the east port is configured on a virtual channel, the east 
+            port state is always forwarding."
+        ::= { swERPSMgmtRAPSVlanEntry 5 }
+
+    swERPSMgmtRAPSRPLPort OBJECT-TYPE
+        SYNTAX  INTEGER {
+                none(1),
+                west(2),
+                east(3)
+        }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This is used to configure the RPL port for the specific ring."
+        ::= { swERPSMgmtRAPSVlanEntry 6 }
+
+    swERPSMgmtRAPSRPLOwnerAdminState OBJECT-TYPE
+        SYNTAX      INTEGER {
+                  enabled(1),
+                  disabled(2)
+                   }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This is used to configure the the RPL owner for the specific ring. 
+             The RPL owner is an Ethernet Ring Node adjacent to the RPL that 
+             is responsible for blocking its end of the RPL under normal 
+             conditions."
+        ::= { swERPSMgmtRAPSVlanEntry 7 }
+
+    swERPSMgmtRAPSProtectionVlan  OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This is used to configure the VLANs that are protected by the ERPS physical ring. 
+             The R-APS VLAN cannot be included in the protected VLAN. The protected VLAN can be 
+             one that has already been created, or it can be used for a VLAN that has not yet 
+             been created."
+        ::= { swERPSMgmtRAPSVlanEntry 8 }
+
+    swERPSMgmtRAPSRingMEL OBJECT-TYPE
+        SYNTAX      INTEGER (0..7)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The ring MEL is the maintenance entity group (MEG) level that 
+             provides a communication channel for the ring automatic protection 
+            switching (R-APS) information."
+        ::= { swERPSMgmtRAPSVlanEntry 9 }
+        
+
+    swERPSMgmtRAPSHoldOffTime OBJECT-TYPE
+        SYNTAX      INTEGER (0..10000)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This timer is used to filter out intermittent link faults when link failures occur during
+             the protection switching process. When a ring node detects a link failure, it will start 
+             the holdoff timer and report the link failure event (R-APS BPDU with SF flag) after the 
+             link failure is confirmed within the specified time period."
+        ::= { swERPSMgmtRAPSVlanEntry 10 }
+
+    swERPSMgmtRAPSGuardTime OBJECT-TYPE
+            SYNTAX      INTEGER (10..2000)
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+                "Guard Timer is used to prevent ring nodes from receiving outdated R-APS messages. 
+                 This timer is used during the protection switching process after recovering from 
+                 a link failure."
+            ::= { swERPSMgmtRAPSVlanEntry 11 }
+
+    swERPSMgmtRAPSWTRTime OBJECT-TYPE
+        SYNTAX      INTEGER (1..12)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+                "When revertive is enabled, this is used to prevent frequent 
+                 operation of the protection switch due to an intermittent defect. 
+                 This timer is used during the protection switching process when 
+                 recovering from a link failure. It is only used by the RPL owner. "
+        ::= { swERPSMgmtRAPSVlanEntry 12 }
+
+    swERPSMgmtRAPSRingState OBJECT-TYPE
+        SYNTAX      INTEGER {
+                begin(1),
+                init(2),
+                idle(3),
+                protection(4)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+                "This indicates the ring node state.The available states 
+                are: begin, init, idle, or protection."
+        ::= { swERPSMgmtRAPSVlanEntry 13 }
+        
+        swERPSMgmtRAPSRingAdminState OBJECT-TYPE
+	    SYNTAX      INTEGER {
+					enabled(1),
+                	disabled(2)
+					}
+	    MAX-ACCESS  read-write
+	    STATUS      current
+	    DESCRIPTION
+                "This indicates the administrative state of the ring.
+                 When both the global state and the specified ring state are 
+                 enabled, the specified ring will be activated.
+                 In order to guarantee correct operation, the following integrity will be checked when 
+                 the ring instance is enabled and the global ERPS state is enabled.
+                 1. R-APS VLAN is designated.
+                 2. The physical ring ports are the tagged member port of the R-APS VLAN.
+                 3. The RPL port is specified if RPL owner is designated.
+                 4. STP or LBD disabled on the physical ring ports.
+                 5. The virtual channel must existed when the instance is sub ring instance."
+	    ::= { swERPSMgmtRAPSVlanEntry 14 }	
+     
+    swERPSMgmtRAPSRPLOwnerOperStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+					active(1),
+					inactive(2),
+					disabled(3)
+                   }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The current operational value of the RPL owner state. The value 'active' 
+             is used to indicate that the RPL owner administrative state is enabled. 
+             The value 'inactive' is only used for compatibility and do not used any more. 
+             The value 'disabled' is used to indicate that the RPL owner administrative 
+             state of the device is disabled."
+        ::= { swERPSMgmtRAPSVlanEntry 15 }
+
+    swERPSMgmtRAPSProtectionVlanRangeList1to64 OBJECT-TYPE
+		SYNTAX     OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(1-512) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSMgmtRAPSProtectionVlan object."
+        ::= { swERPSMgmtRAPSVlanEntry 16 }
+
+    swERPSMgmtRAPSProtectionVlanRangeList65to128 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(513-1024) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSMgmtRAPSProtectionVlan object."			
+        ::= { swERPSMgmtRAPSVlanEntry 17 }
+
+    swERPSMgmtRAPSProtectionVlanRangeList129to192 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(1025-1536) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSMgmtRAPSProtectionVlan object."
+        ::= { swERPSMgmtRAPSVlanEntry 18 }
+
+    swERPSMgmtRAPSProtectionVlanRangeList193to256 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(1537-2048) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSMgmtRAPSProtectionVlan object."
+        ::= { swERPSMgmtRAPSVlanEntry 19 }
+
+    swERPSMgmtRAPSProtectionVlanRangeList257to320 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(2049-2560) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSMgmtRAPSProtectionVlan object."
+        ::= { swERPSMgmtRAPSVlanEntry 20 }
+
+    swERPSMgmtRAPSProtectionVlanRangeList321to384 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(2561-3072) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSMgmtRAPSProtectionVlan object."
+        ::= { swERPSMgmtRAPSVlanEntry 21 }
+
+    swERPSMgmtRAPSProtectionVlanRangeList385to448 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(3073-3584) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSMgmtRAPSProtectionVlan object."
+        ::= { swERPSMgmtRAPSVlanEntry 22 }
+
+    swERPSMgmtRAPSProtectionVlanRangeList449to512 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(3585-4096) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSMgmtRAPSProtectionVlan object."
+        ::= { swERPSMgmtRAPSVlanEntry 23 }
+
+    swERPSMgmtRAPSRevertive OBJECT-TYPE
+        SYNTAX      INTEGER {
+                  enabled(1),
+                  disabled(2)
+                   }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The object is used to enable or disable the revertive operation of a special 
+            ring. When revertive is disabled, the traffic link is allowed to use the RPL, 
+            after recovering from a failure. When revertive is enabled, the traffic 
+            link is restored to the working transport link."
+		DEFVAL{enabled}
+        ::= { swERPSMgmtRAPSVlanEntry 24 }
+
+    swERPSMgmtRAPSOperWestPort OBJECT-TYPE
+        SYNTAX  INTEGER (0|1..65535)
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+            "This object indicates actual running ring west port.
+            The value 0 indicates the west port is a virtual channel."
+        ::= { swERPSMgmtRAPSVlanEntry 25 }
+
+    swERPSMgmtRAPSOperEastPort OBJECT-TYPE
+        SYNTAX  INTEGER (0|1..65535)
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+            "This object indicates actual running ring east port.
+            The value 0 indicates the east port is a virtual channel."
+        ::= { swERPSMgmtRAPSVlanEntry 26 }
+
+    swERPSMgmtRAPSOperRPLPort OBJECT-TYPE
+        SYNTAX  INTEGER {
+                none(1),
+                west(2),
+                east(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+            "This object indicates actual running ring RPL port."
+        ::= { swERPSMgmtRAPSVlanEntry 27 }
+
+    swERPSMgmtRAPSRPLOwnerOperState OBJECT-TYPE
+        SYNTAX      INTEGER {
+                  enabled(1),
+                  disabled(2)
+                   }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "This object indicates actual running RPL owner state."
+        ::= { swERPSMgmtRAPSVlanEntry 28 }
+
+     swERPSMgmtRAPSRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the RowStatus of this entry."
+        ::= { swERPSMgmtRAPSVlanEntry 100 }
+
+-- ----------------------------------------------------------------------------
+-- swERPSMgmtSubRingCtrlTable
+-- ----------------------------------------------------------------------------    
+
+    swERPSMgmtSubRingCtrlTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF SwERPSMgmtSubRingCtrlEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains the ERPS sub-ring configuration information. For ERPSv2 
+             it can only contains the ring's default instance.
+             This is used for compatibility with old MIB. We suggest use swERPSEtherSubRingTable."
+        ::= { swERPSMgmt 2 } 
+     
+    swERPSMgmtSubRingCtrlEntry OBJECT-TYPE
+        SYNTAX      SwERPSMgmtSubRingCtrlEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of the ERPS sub-ring configuration information."
+        INDEX    {swERPSMgmtSubRingCtrlRAPSVlanId, swERPSMgmtSubRingCtrlSubRingRAPSVlanId}
+        ::= { swERPSMgmtSubRingCtrlTable 1 }
+           
+    SwERPSMgmtSubRingCtrlEntry ::= SEQUENCE {
+            swERPSMgmtSubRingCtrlRAPSVlanId
+                INTEGER,
+            swERPSMgmtSubRingCtrlSubRingRAPSVlanId
+            	INTEGER,
+            swERPSMgmtSubRingCtrlTCPropagationState
+                INTEGER,
+            swERPSMgmtSubRingCtrlRowStatus
+            	RowStatus	    	   
+    }
+    
+    swERPSMgmtSubRingCtrlRAPSVlanId  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The R-APS VLAN is an index of the configuration."
+        ::= { swERPSMgmtSubRingCtrlEntry 1 }  
+    
+    swERPSMgmtSubRingCtrlSubRingRAPSVlanId  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This indicates the ring control VLAN-ID of the sub-ring which 
+            connects to another ring."
+        ::= { swERPSMgmtSubRingCtrlEntry 2 } 
+        
+    swERPSMgmtSubRingCtrlTCPropagationState  OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    enabled(1),
+                	disabled(2)
+			}
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This indicates the state of the sub-ring topology change propagation."
+        ::= { swERPSMgmtSubRingCtrlEntry 3 } 
+        
+    swERPSMgmtSubRingCtrlRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the status of this entry."
+        ::= { swERPSMgmtSubRingCtrlEntry 4 }       
+
+-- -----------------------------------------------------------------------------
+-- swERPSNotify
+-- -----------------------------------------------------------------------------
+    
+   swERPSNotifyPrefix       OBJECT IDENTIFIER ::= { swERPSNotify 0 }
+
+    swERPSSFDetectedTrap    NOTIFICATION-TYPE
+        OBJECTS     {swERPSNodeId }
+        STATUS      current
+        DESCRIPTION
+            "When a signal failure occurs, a trap will be generated."
+        ::= { swERPSNotifyPrefix 1 }
+
+    swERPSSFClearedTrap NOTIFICATION-TYPE
+        OBJECTS     {swERPSNodeId }
+        STATUS          current
+        DESCRIPTION
+            "When the signal failure clears, a trap will be generated."
+        ::= { swERPSNotifyPrefix 2 }
+
+    swERPSRPLOwnerConflictTrap   NOTIFICATION-TYPE
+        OBJECTS     {swERPSNodeId }
+        STATUS          current
+        DESCRIPTION
+            "When a conflict occurs, a trap will be generated."
+        ::= { swERPSNotifyPrefix 3 }
+	
+    swERPSMSDectectedTrap   NOTIFICATION-TYPE
+        OBJECTS     {swERPSNodeId }
+        STATUS          current
+        DESCRIPTION
+            "When Muanual command detected on node, a trap will be generated."
+        ::= { swERPSNotifyPrefix 4 }
+		
+    swERPSFSDectectedTrap   NOTIFICATION-TYPE
+        OBJECTS     {swERPSNodeId }
+        STATUS          current
+        DESCRIPTION
+            "When Force command detected on node, a trap will be generated."
+        ::= { swERPSNotifyPrefix 5 }
+	
+    swERPSClearDectectedTrap   NOTIFICATION-TYPE
+        OBJECTS     {swERPSNodeId }
+        STATUS          current
+        DESCRIPTION
+            "When Clear command detected on node, a trap will be generated."
+        ::= { swERPSNotifyPrefix 6 }
+
+    swERPSNotificationBindings   OBJECT IDENTIFIER ::= { swERPSNotify 2 }
+    
+    swERPSNodeId OBJECT-TYPE
+            SYNTAX      MacAddress
+            MAX-ACCESS  accessible-for-notify
+            STATUS      current
+            DESCRIPTION
+                "This used trap object means the node MAC."
+            ::= { swERPSNotificationBindings 1 }
+
+-- -----------------------------------------------------------------------------
+-- swERPSObject
+-- -----------------------------------------------------------------------------                    	
+	swERPSEtherRingTable OBJECT-TYPE
+        SYNTAX          SEQUENCE OF SwERPSEtherRingEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "This table contains configuration of the G8032 physical rings."
+        ::= { swERPSObject 1 }
+
+    swERPSEtherRingEntry OBJECT-TYPE
+        SYNTAX          SwERPSEtherRingEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "An entry contains G8032 physical ring inforamtion.
+             An entry is created when a G8032 physical ring is defined, and
+             an entry is removed when an inactive G8032 physical ring is deleted."
+        INDEX    { swERPSEtherRingName }
+        ::= { swERPSEtherRingTable 1 }
+
+    SwERPSEtherRingEntry ::= SEQUENCE {
+        swERPSEtherRingName		        DisplayString,
+        swERPSEtherRingAdminPortWestIfIdx   INTEGER,        
+        swERPSEtherRingAdminPortEastIfIdx   INTEGER,
+        swERPSEtherRingId  			    INTEGER,
+        swERPSEtherRingType  			    INTEGER,
+        swERPSEtherRingRowStatus         RowStatus		
+    }
+                 
+    swERPSEtherRingName OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE(1..32))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the name of the G8032 ring."
+        ::= { swERPSEtherRingEntry 1 }
+                                        
+    swERPSEtherRingAdminPortWestIfIdx OBJECT-TYPE
+        SYNTAX          INTEGER (0|1..65535)
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the number of the port which is the
+            configured first ring port of the physical ring.
+            Setting this object to 0 indicates that the
+            interconnect node is a local node endpoint of an open ring.
+            " 
+        DEFVAL { 0 }           
+        ::= { swERPSEtherRingEntry 2 }
+                  
+     swERPSEtherRingAdminPortEastIfIdx OBJECT-TYPE
+        SYNTAX          INTEGER (0|1..65535)
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the number of the port which is the
+            configured second ring port of the physical ring.
+            Setting this object to 0 indicates that the
+            interconnect node is a local node endpoint of an open ring.
+            " 
+        DEFVAL { 0 }           
+        ::= { swERPSEtherRingEntry 3 }   
+
+    swERPSEtherRingId OBJECT-TYPE
+        SYNTAX          INTEGER ( 0..239 )       
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object configures the ring id. The valid range is 1 to 239.
+             For ERPSv1, the node is not accessible and always return 1 for read operation."
+        DEFVAL { 0 }
+        ::= { swERPSEtherRingEntry 4 } 
+
+     swERPSEtherRingType OBJECT-TYPE
+        SYNTAX          INTEGER{
+        	majorRing(1),
+        	subRing(2)        	
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the administratively configured ring type.
+            For ERPSv1, the node is not accessible and always return 0xff for read operation."            
+        ::= { swERPSEtherRingEntry 5 }
+
+     swERPSEtherRingRowStatus OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of the conceptual row."
+        ::= { swERPSEtherRingEntry 99 } 
+                            
+-- ----------------------------------------------------------------------------- 
+    swERPSEtherSubRingTable OBJECT-TYPE
+        SYNTAX          SEQUENCE OF SwERPSEtherSubRingEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "This table contains sub ring configuration of the G8032 physical rings."
+        ::= { swERPSObject 2 }
+
+    swERPSEtherSubRingEntry OBJECT-TYPE
+        SYNTAX          SwERPSEtherSubRingEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "An entry contains a sub ring setting of a physical ring. 
+             The first instance identifier index value (swERPSEtherRingName) identifies the 
+             swERPSEtherRingEntry that the ERPS instance (swERPSEtherRingInstanceId) belongs to. 
+             An entry is created/removed when a sub ring is specified or removed. 
+            "
+       
+        INDEX    { 
+            swERPSEtherRingName,
+            swERPSEtherSubRingName,
+            swERPSEtherRingInstanceId,
+            swERPSEtherSubRingInstanceId
+        }
+        ::= { swERPSEtherSubRingTable 1 }
+
+    SwERPSEtherSubRingEntry ::= SEQUENCE {        
+        swERPSEtherSubRingName           DisplayString,        
+        swERPSEtherRingInstanceId        INTEGER,
+        swERPSEtherSubRingInstanceId     INTEGER,   
+        swERPSEtherSubRingTCPropagation  TruthValue,
+        swERPSEtherSubRingRowStatus      RowStatus		
+    }
+   
+    swERPSEtherSubRingName OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE(1..32))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the name of the sub ring."
+        ::= { swERPSEtherSubRingEntry 1 }      
+                                   
+    swERPSEtherRingInstanceId OBJECT-TYPE
+       	SYNTAX          INTEGER ( 1..32 )
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the major ring instance id."
+        ::= { swERPSEtherSubRingEntry 2 }
+        
+    swERPSEtherSubRingInstanceId OBJECT-TYPE
+       	SYNTAX          INTEGER ( 1..32 )
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the sub ring instance id."
+        ::= { swERPSEtherSubRingEntry 3 }
+                    
+    swERPSEtherSubRingTCPropagation OBJECT-TYPE
+        SYNTAX          TruthValue
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the state of the topology change propagation 
+             for the sub-ring instance. Setting this object to 'true' to enable 
+             the propagation state of the topology change for the sub-ring.
+             Setting this object to 'false' to disable the propagation state of 
+             the topology change for the sub-ring."
+        DEFVAL { false }
+        ::= { swERPSEtherSubRingEntry 4 }
+
+     swERPSEtherSubRingRowStatus OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of the conceptual row."
+        ::= { swERPSEtherSubRingEntry 99 } 		
+-- -----------------------------------------------------------------------------     
+   swERPSInstTable OBJECT-TYPE
+        SYNTAX          SEQUENCE OF SwERPSInstEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "This table contains a list of ERPS instance configuration and 
+            status information."
+        ::= { swERPSObject 3 }
+
+    swERPSInstEntry OBJECT-TYPE
+        SYNTAX          SwERPSInstEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "An entry contains information about an ERPS instance.
+            The first instance identifier index value (swERPSEtherRingName)
+            identifies the swERPSEtherRingEntry that an ERPS instance (swERPSInstEntry)
+            belongs to. An entry is removed from this table when its 
+            corresponding swERPSEtherRingEntry is deleted.
+            An entry is created/removed when an ERPS instance is defined
+            or deleted."
+        INDEX    { 
+            swERPSEtherRingName, 
+            swERPSInstInstanceId 
+        }
+        ::= { swERPSInstTable 1 }
+
+    SwERPSInstEntry ::= SEQUENCE {
+        swERPSInstInstanceId             INTEGER,
+        swERPSInstMel                    INTEGER,
+        swERPSInstApsChannelVlanId       VlanIdOrNone,
+        swERPSInstProtectionVlan         DisplayString,          
+        swERPSInstAdminRplPort           INTEGER,
+        swERPSInstOperRplPort            INTEGER,
+        swERPSInstAdminRplNodeRole       INTEGER,
+        swERPSInstOperRplNodeRole        INTEGER,                                 
+        swERPSInstOperPortWestIfIdx         INTEGER,
+        swERPSInstOperPortWestState         INTEGER,
+        swERPSInstOperPortEastIfIdx         INTEGER,
+        swERPSInstOperPortEastState         INTEGER,          
+        swERPSInstAdminActivate          TruthValue,
+        swERPSInstInstanceState          INTEGER,
+        swERPSInstAdminSwitchMode        INTEGER,
+        swERPSInstAdminSwtichRingPort    INTEGER,
+        swERPSInstRevertiveEnabled       TruthValue,
+        swERPSInstGuardTimer             INTEGER,
+        swERPSInstHoldOffTimer           INTEGER,
+        swERPSInstWtrTimer               INTEGER,
+        swERPSInstProtectionVlanRangeList1to64                OCTET STRING,
+        swERPSInstProtectionVlanRangeList65to128              OCTET STRING,
+        swERPSInstProtectionVlanRangeList129to192             OCTET STRING,
+        swERPSInstProtectionVlanRangeList193to256             OCTET STRING,
+        swERPSInstProtectionVlanRangeList257to320             OCTET STRING,
+        swERPSInstProtectionVlanRangeList321to384             OCTET STRING,
+        swERPSInstProtectionVlanRangeList385to448             OCTET STRING,
+        swERPSInstProtectionVlanRangeList449to512             OCTET STRING,
+        swERPSInstRowStatus              RowStatus 		
+    }
+           
+    swERPSInstInstanceId OBJECT-TYPE
+        SYNTAX          INTEGER (1..32)
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the ID of the ERPS instance."
+        ::= { swERPSInstEntry 1 }        
+                                                               
+    swERPSInstMel OBJECT-TYPE
+        SYNTAX          INTEGER (0..7)
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the ring MEL value of the ERPS instance."
+        ::= { swERPSInstEntry 2 }    
+                     
+    swERPSInstApsChannelVlanId OBJECT-TYPE
+        SYNTAX          VlanIdOrNone
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the R-APS channel VLAN for the ERPS instance.
+             The vlan is used to transfer R-APS messages.
+             A special value of 0 indicates the APS channel VLAN is not specified."            
+        ::= { swERPSInstEntry 3 } 
+
+	swERPSInstProtectionVlan  OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This is used to configure the VLANs that are protected by the ERPS instance. 
+             The R-APS VLAN cannot be included in the protected VLAN. The protected VLAN can be 
+             one that has already been created, or it can be used for a VLAN that has not yet 
+             been created."
+        ::= { swERPSInstEntry 4 }		
+            
+    swERPSInstAdminRplPort OBJECT-TYPE
+        SYNTAX          INTEGER{             
+        	 portwest(0),
+        	 porteast(1),
+        	 none(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the administratively configured RPL port of
+             the entry.
+             portwest(0) - Specify port west as the RPL port.
+             porteast(1) - Specify port east as the RPL port. 
+             none(2)  - The RPL port is not specified.
+            "
+        ::= { swERPSInstEntry 5 }
+            
+    swERPSInstOperRplPort OBJECT-TYPE
+        SYNTAX          INTEGER {             
+        	 portwest(0),
+        	 porteast(1),
+        	 none(2)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "This object indicates the operational RPL port of the entry."
+        ::= { swERPSInstEntry 6 }
+            
+    swERPSInstAdminRplNodeRole OBJECT-TYPE
+        SYNTAX          INTEGER{
+            none(0),
+        	owner(1),
+        	neighbor(2)        	
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the administratively configured node role.
+            This object has to be none(0) if administrative RPL port is
+            not specified."            
+        ::= { swERPSInstEntry 7 }
+   
+    swERPSInstOperRplNodeRole OBJECT-TYPE
+        SYNTAX          INTEGER{
+            none(0),
+        	owner(1),
+        	neighbor(2)        	
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the current ring node role."                       
+        ::= { swERPSInstEntry 8 }
+                       
+     swERPSInstOperPortWestIfIdx OBJECT-TYPE
+        SYNTAX          INTEGER (0|1..65535)
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the number of the operational ring first 
+            port of the physical ring.            
+            The value of administrative port west inherits swERPSEtherRingAdminPortWestIfIdx
+            of physical ring to which this instance belongs to.
+            The special value of 0 indicates that the interconnect node is a local node 
+            endpoint of an open ring."           
+        ::= { swERPSInstEntry 9 }   
+
+     swERPSInstOperPortWestState OBJECT-TYPE                
+        SYNTAX          INTEGER {
+            notApplicable(1),
+        	forwarding(2),
+        	blocked(3),
+        	virtualChannel(4)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the current state of port west."
+        ::= { swERPSInstEntry 10 }
+     
+    swERPSInstOperPortEastIfIdx OBJECT-TYPE
+        SYNTAX          INTEGER (0|1..65535)
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the number of the operational ring second 
+            port of the physical ring.       
+            The value of administrative port east inherits swERPSEtherRingAdminPortEastIfIdx
+            of physical ring to which the instance belongs.     
+            The special value of 0 indicates that the interconnect node is a local node 
+            endpoint of an open ring."           
+        ::= { swERPSInstEntry 11 }
+      
+     swERPSInstOperPortEastState OBJECT-TYPE                
+        SYNTAX          INTEGER {
+        	notApplicable(1),
+        	forwarding(2),
+        	blocked(3),
+        	virtualChannel(4)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the current state of port east."
+        ::= { swERPSInstEntry 12 }    
+              
+     swERPSInstAdminActivate OBJECT-TYPE
+        SYNTAX          TruthValue
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the administrative state of the ERPS instance.
+            Setting this object to 'true' to enable the ERPS instance.
+            Setting this object to 'false' to disable the ERPS instance.
+            When both the global state and the specified ring state are 
+            enabled, the specified ring will be activated.
+            In order to guarantee correct operation, the following integrity will be checked when 
+            the ring instance is enabled and the global ERPS state is enabled.
+            1. R-APS VLAN is designated.
+            2. The physical ring ports are the tagged member port of the R-APS VLAN.
+            3. The RPL port is specified if RPL owner or neighbor is designated.
+            4. STP or LBD disabled on the physical ring ports.
+            5. The virtual channel must existed when the instance is sub ring instance."
+        DEFVAL { false }
+        ::= { swERPSInstEntry 13 }   
+    
+    swERPSInstInstanceState OBJECT-TYPE
+        SYNTAX          INTEGER {
+            deactivated(0),
+            nonOperational(1),
+            init(2),
+            idle(3),
+            protection(4),
+            manual(5),
+            force(6),
+            pending(7)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the current ring node state of the ERPS instance. 
+             The state could be: 
+             disabled(0)		: The ERPS instance is disabled.
+             nonOperational(1)	: The ERPS instance is enabled but is not activated
+			                      due to inconsistent setting.
+             init(2)			: The instance is initializing.
+             idle(3)			: The instance is in normal state. The RPL port
+			                      is blocked.
+             protection(4)		: The instance detects failure at some ring port.
+			                      The RPL port is restored to protect the port.
+             manual(5)          : Forcibly blocks a port has been configured when link 
+			                      failures and FS conditions are absent. For ERPSv2 use only.
+             force(6)           : Forcibly blocks a port has been configured irrespective 
+			                      of whether link failures have occurred. For ERPSv2 use only.
+             pending(7)         : The middle state between idle and other states. For ERPSv2 use only"
+        ::= { swERPSInstEntry 14 }
+
+     swERPSInstAdminSwitchMode OBJECT-TYPE                
+        SYNTAX          INTEGER {
+        	forceBlock(1),
+        	manualBlock(2),
+        	clearBlock(3)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the designated ring port switch mode.For ERPSv1, 
+            the node is not accessible and always return 0xff for read operation;
+            For ERPSv2, its default value is 0xff indicate there is no operation 
+            on this node."
+        ::= { swERPSInstEntry 15 }    
+
+     swERPSInstAdminSwtichRingPort OBJECT-TYPE                
+        SYNTAX          INTEGER {             
+        	 portwest(0),
+        	 porteast(1)        	
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates the designated ring port. For ERPSv1, 
+            the node is not accessible and always return 0xff for read operation;
+            For ERPSv2, its default value is 0xff indicate there is no operation 
+            on this node."
+        ::= { swERPSInstEntry 16 }
+
+     swERPSInstRevertiveEnabled OBJECT-TYPE
+        SYNTAX          TruthValue
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object indicates whether restoring to the working transport entity,
+            i.e. blocked on the RPL of the entry.
+            In non-revertive operation, the traffic channel continues to use the RPL,
+            if it is not failed, after a switch link defect condition has cleared."
+        DEFVAL { true }    
+        ::= { swERPSInstEntry 17 }
+        
+     swERPSInstGuardTimer OBJECT-TYPE
+        SYNTAX          INTEGER ( 10..2000 )
+        UNITS           "milliseconds"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object configures the guard timer in milliseconds for an ERPS domain.
+             The valid range is 10 to 2000. The value should be multiple of 10."
+        DEFVAL { 500 }
+        ::= { swERPSInstEntry 18 }
+
+    swERPSInstHoldOffTimer OBJECT-TYPE
+       	SYNTAX          INTEGER ( 0..10 )
+        UNITS			"seconds"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object configures the hold-off timer in seconds for an ERPS domain.           
+             The valid range is 0 to 10."
+        DEFVAL { 0 }
+        ::= { swERPSInstEntry 19 }
+        
+    swERPSInstWtrTimer OBJECT-TYPE
+        SYNTAX          INTEGER ( 1..12 )
+        UNITS			"minutes"          
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "This object configures the WTR timer in minutes for an ERPS domain.                       
+              The valid range is 1 to 12."
+        DEFVAL { 5 }
+        ::= { swERPSInstEntry 20 } 
+
+    swERPSInstProtectionVlanRangeList1to64 OBJECT-TYPE
+		SYNTAX     OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(1-512) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSInstProtectionVlan object."
+        ::= { swERPSInstEntry 21 }
+
+    swERPSInstProtectionVlanRangeList65to128 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(513-1024) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSInstProtectionVlan object."
+        ::= { swERPSInstEntry 22 }
+
+    swERPSInstProtectionVlanRangeList129to192 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(1025-1536) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSInstProtectionVlan object."
+        ::= { swERPSInstEntry 23 }
+
+    swERPSInstProtectionVlanRangeList193to256 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(1537-2048) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSInstProtectionVlan object."
+        ::= { swERPSInstEntry 24 }
+
+    swERPSInstProtectionVlanRangeList257to320 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(2049-2560) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSInstProtectionVlan object."
+        ::= { swERPSInstEntry 25 }
+
+    swERPSInstProtectionVlanRangeList321to384 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(2561-3072) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSInstProtectionVlan object."
+        ::= { swERPSInstEntry 26 }
+
+    swERPSInstProtectionVlanRangeList385to448 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(3073-3584) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSInstProtectionVlan object."
+        ::= { swERPSInstEntry 27 }
+
+    swERPSInstProtectionVlanRangeList449to512 OBJECT-TYPE
+		SYNTAX      OCTET STRING (SIZE (64))
+		MAX-ACCESS  read-write
+		STATUS      current
+		DESCRIPTION
+			"This object indicates the VLAN range(3585-4096) that belong to the protected VLANs
+			 in a string of hex containing one bit per VLAN for VLANs. 
+			 If the bit is '1' indicate the VLAN is configured to be protected by 
+			 the Ethernet ring protection mechanism.
+			 Its the same affect with swERPSInstProtectionVlan object."
+        ::= { swERPSInstEntry 28 } 
+
+    swERPSInstRowStatus OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of the conceptual row."
+        ::= { swERPSInstEntry 99 }		
+
+END		

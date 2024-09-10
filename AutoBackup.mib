@@ -1,0 +1,489 @@
+-- -----------------------------------------------------------------------------
+-- MIB NAME : AutoBackup Common mib
+-- FILE NAME: AutoBackup.mib
+-- DATE     : 2017/11/07
+-- VERSION  : 1.00
+-- PURPOSE  : To construct the MIB structure of Auto Backup 
+--            for proprietary enterprise
+-- -----------------------------------------------------------------------------
+-- MODIFICTION HISTORY:
+-- -----------------------------------------------------------------------------
+-- Version, Date, Author
+-- Description:
+-- [New Object]
+-- [Modification]
+-- Notes: (Requested by who and which project)
+-- -----------------------------------------------------------------------------  
+-- Version 1.01, 2017/12/20, Morris Liao
+-- Remove the hyphen in swAutoBackupMode and add swAutoBackupPathRcpPathName 
+-- -----------------------------------------------------------------------------  
+-- Version 1.00, 2017/11/07, Jean Chen
+-- This is the first formal version for universal MIB definition.
+-- -----------------------------------------------------------------------------  
+
+AUTOBACKUP-MIB DEFINITIONS ::= BEGIN
+
+	IMPORTS         
+	    MODULE-IDENTITY,OBJECT-TYPE,IpAddress     FROM SNMPv2-SMI   
+	    RowStatus           			FROM SNMPv2-TC
+        DisplayString                   FROM RFC1213-MIB
+	    dlink-common-mgmt 		        FROM DLINK-ID-REC-MIB;
+
+	swAutoBackupMIB MODULE-IDENTITY
+	    LAST-UPDATED "1708140000Z"
+	    ORGANIZATION "D-Link Corp."
+	    CONTACT-INFO
+	        "http://support.dlink.com"
+	    DESCRIPTION
+	        "The Auto Backup module MIB for the proprietary enterprise."
+	    ::= { dlink-common-mgmt 122}
+   
+-- -----------------------------------------------------------------------------
+-- Textual Conventions
+-- -----------------------------------------------------------------------------
+-- This definition may be excluded if IPv6 is not supported
+Ipv6Address ::= TEXTUAL-CONVENTION
+	DISPLAY-HINT "2x:"
+	STATUS       current
+	DESCRIPTION
+		"This data type is used to model IPv6 addresses.
+		This is a binary string of 16 octets in network
+		byte-order."
+	SYNTAX       OCTET STRING (SIZE (16))
+
+    swAutoBackupMIBObjects	OBJECT IDENTIFIER ::= { swAutoBackupMIB 1 }
+
+-- -----------------------------------------------------------------------------
+-- swAutoBackupGlobalState
+-- -----------------------------------------------------------------------------
+   swAutoBackupGlobalState OBJECT-TYPE
+        SYNTAX  INTEGER {
+               enabled(1),
+               disabled(2)
+               }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the global state of Auto Backup function on the switch."
+        ::= { swAutoBackupMIBObjects 1 }
+
+-- -----------------------------------------------------------------------------
+-- swAutoBackupMode
+-- -----------------------------------------------------------------------------
+   swAutoBackupMode OBJECT-TYPE
+        SYNTAX  INTEGER {  
+               saveConfig(1),
+               timePeriod(2),
+               all(3)
+               }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the mode for auto backup timing.
+            System needs to upload the running configuration to TFTP/FTP server according to the following events:
+            (1)	Save configuration
+            (2)	Time schedule. The time schedule can be a time interval in minute or a periodically day and time."
+        ::= { swAutoBackupMIBObjects 2 }
+
+-- -----------------------------------------------------------------------------
+-- swAutoBackupLogState
+-- -----------------------------------------------------------------------------
+   swAutoBackupLogState OBJECT-TYPE
+        SYNTAX  INTEGER {  
+               enabled(1),
+               disabled(2)
+               }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the log state of Auto Backup function on the switch."
+        ::= { swAutoBackupMIBObjects 3 }
+
+-- -----------------------------------------------------------------------------
+-- swAutoBackupEncrypState
+-- -----------------------------------------------------------------------------
+   swAutoBackupEncrypState OBJECT-TYPE
+        SYNTAX  INTEGER {  
+               enabled(1),
+               disabled(2)
+               }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the encryption state of Auto Backup function when the backup path is used FTP.
+            enabled: The whole FTP path included username, password, ip address, port, and file name will be encrypted 
+                     in show command and configuration file."
+        ::= { swAutoBackupMIBObjects 4 }
+
+-- -----------------------------------------------------------------------------
+-- swAutoBackupTimeScheduleTable
+-- -----------------------------------------------------------------------------
+    swAutoBackupTimeScheduleTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SwAutoBackupTimeScheduleEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "A list of the MIB Basic Config entries support files updated by this agent."
+        ::= { swAutoBackupMIBObjects 5 }
+
+    swAutoBackupTimeScheduleEntry OBJECT-TYPE
+        SYNTAX  SwAutoBackupTimeScheduleEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "A basic configuration entry containing the objects describing a particular MIB
+             supported by this agent."
+        INDEX   { swAutoBackupPathIndex }
+        ::= { swAutoBackupTimeScheduleTable 1 }
+
+    SwAutoBackupTimeScheduleEntry ::=
+        SEQUENCE {
+            swAutoBackupTimeScheduleIndex
+                INTEGER,
+            swAutoBackupTimeScheduleType
+                INTEGER,     
+            swAutoBackupTimeScheduleInterval
+                INTEGER, 
+            swAutoBackupTimeSchedulePeriodicTime
+                DisplayString, 
+            swAutoBackupTimeSchedulePeriodicDay
+                BITS,
+            swAutoBackupTimeSchedulehRowStatus
+                RowStatus					               
+        }
+                    
+    swAutoBackupTimeScheduleIndex OBJECT-TYPE
+        SYNTAX  INTEGER
+        MAX-ACCESS      read-only
+        STATUS  current
+        DESCRIPTION
+                "The table index for the file entry."
+        ::= { swAutoBackupTimeScheduleEntry 1 }
+
+    swAutoBackupTimeScheduleType OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    interval(1),
+                    periodic(2)
+                }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+                "This object provides the user with a choice of uploading timeing when autobackup mode is set as time-schedule.
+                If the auto backup is based on the time schedule, Switch should not save the running-configuration into NVRAM, 
+                it should upload the configuration without save.
+                 interval: Specifies the amount of time in minutes between backup running configurations.
+                 periodic: The auto backup will take place on the specified time periodically."
+        ::= { swAutoBackupTimeScheduleEntry 2 }
+ 
+     swAutoBackupTimeScheduleInterval OBJECT-TYPE
+        SYNTAX   INTEGER (1..525600)
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+                "Specifies the amount of time in minutes between backup running configurations.
+                The default value is 1440 minutes."
+        ::= { swAutoBackupTimeScheduleEntry 3 }
+
+    swAutoBackupTimeSchedulePeriodicTime OBJECT-TYPE
+        SYNTAX  DisplayString  (SIZE (0..255))
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The string including: hh:mm:ss.
+             It means hour, minute, and second of specified time."
+        ::= {  swAutoBackupTimeScheduleEntry 4 }
+
+    swAutoBackupTimeSchedulePeriodicDay OBJECT-TYPE
+        SYNTAX      BITS {
+              sunday(0), 
+              monday(1), 
+              tuesday(2), 
+              wednesday(3), 
+              thursday(4), 
+              friday(5), 
+              saturday(6)
+              }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "Specify days to repeat the backup."
+        ::= { swAutoBackupTimeScheduleEntry 5 }	                
+
+    swAutoBackupTimeSchedulehRowStatus OBJECT-TYPE
+        SYNTAX   RowStatus
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the status of this entry."
+        ::= { swAutoBackupTimeScheduleEntry 6 }
+
+
+-- -----------------------------------------------------------------------------
+-- swAutoBackupPathTable
+-- -----------------------------------------------------------------------------
+    swAutoBackupPathTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SwAutoBackupPathEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "A list of the MIB Basic Config entries support files updated by this agent."
+        ::= { swAutoBackupMIBObjects 6 }
+
+    swAutoBackupPathEntry OBJECT-TYPE
+        SYNTAX  SwAutoBackupPathEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "A basic configuration entry containing the objects describing a particular MIB
+             supported by this agent."
+        INDEX   { swAutoBackupPathIndex }
+        ::= { swAutoBackupPathTable 1 }
+
+    SwAutoBackupPathEntry ::=
+        SEQUENCE {
+            swAutoBackupPathIndex
+                INTEGER,
+            swAutoBackupPathType
+                INTEGER,     
+            swAutoBackupPathTftpAddrType
+                INTEGER, 
+            swAutoBackupPathTftpIPv4Addr
+                IpAddress, 
+            swAutoBackupPathTftpIPv6Addr
+                Ipv6Address,      
+            swAutoBackupPathTftpDomainName
+                DisplayString, 
+            swAutoBackupPathTftpFileName
+                DisplayString,    
+            swAutoBackupPathFtpPathName
+                DisplayString,
+			swAutoBackupPathRcpPathName
+				DisplayString,
+            swAutoBackupPathRowStatus
+                RowStatus					               
+        }
+                    
+    swAutoBackupPathIndex OBJECT-TYPE
+        SYNTAX  INTEGER
+        MAX-ACCESS      read-only
+        STATUS  current
+        DESCRIPTION
+                "The table index for the file entry."
+        ::= { swAutoBackupPathEntry 1 }
+
+    swAutoBackupPathType OBJECT-TYPE
+        SYNTAX  INTEGER { 
+                    tftp(1),
+                    ftp(2)                    
+                }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+                "This object provides the user with a uploading path choice of tftp or ftp.
+                 tftp: System will start the backup process to remote server via TFTP.
+                 ftp: System will start the backup process to remote server via FTP."
+        ::= { swAutoBackupPathEntry 2 }
+
+    swAutoBackupPathTftpAddrType OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    ipv4(1),
+                    ipv6(2),
+                    domain(3)
+                }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+                "This object provides the user with a choice of TFTP Server path .
+                 ipv4: The IPv4 address of the TFTP server.
+                 ipv6: The IPv6 address of the TFTP server.
+                 domain: The domain name of the host."
+        ::= { swAutoBackupPathEntry 3 }
+
+    swAutoBackupPathTftpIPv4Addr OBJECT-TYPE
+        SYNTAX  IpAddress
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The IPv4 address that the running-config file to be uploaded to."
+        ::= {  swAutoBackupPathEntry 4 }
+
+    swAutoBackupPathTftpIPv6Addr OBJECT-TYPE
+        SYNTAX  Ipv6Address
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The IPv6 address that the running-config file to be uploaded to."
+        ::= {  swAutoBackupPathEntry 5 }
+
+    swAutoBackupPathTftpDomainName OBJECT-TYPE
+        SYNTAX  DisplayString  (SIZE (0..255))
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The host domain name that the running-config file to be uploaded to."
+        ::= { swAutoBackupPathEntry 6 }	         
+     
+    swAutoBackupPathTftpFileName OBJECT-TYPE
+        SYNTAX  DisplayString  (SIZE (0..64))
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The path name specifies the file path to be uploaded to the TFTP server. 
+            It can be a relative path name or an absolute path name."
+        ::= { swAutoBackupPathEntry 7 }	         
+
+    swAutoBackupPathFtpPathName OBJECT-TYPE
+        SYNTAX  DisplayString  (SIZE (0..128))
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "The string including: user:password@ipaddr:tcpport/path_filename.
+			When autobackup_encryption is enabled, the string: user:password@ipaddr:tcpport/path_filename 
+			will be encrypted in configuration file."
+        ::= { swAutoBackupPathEntry 8 }	         
+
+    swAutoBackupPathRcpPathName OBJECT-TYPE
+        SYNTAX  DisplayString  (SIZE (0..128))
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "Syntax: rcp: username@ipaddr/directory/filename
+			Note: 
+			No SPACE in the whole string.
+			When autobackup_encryption is enabled, the string will be encrypted in configuration file."
+        ::= { swAutoBackupPathEntry 9 }
+
+    swAutoBackupPathRowStatus OBJECT-TYPE
+        SYNTAX   RowStatus
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the status of this entry."
+        ::= { swAutoBackupPathEntry 10 }
+
+-- -----------------------------------------------------------------------------
+-- swAutoBackupFileTemplateTable
+-- -----------------------------------------------------------------------------
+    swAutoBackupFileTemplateTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SwAutoBackupFileTemplateEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "A list of the MIB Basic Config entries support files updated by this agent."
+        ::= { swAutoBackupMIBObjects 7 }
+
+    swAutoBackupFileTemplateEntry OBJECT-TYPE
+        SYNTAX  SwAutoBackupFileTemplateEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "A basic configuration entry containing the objects describing a particular MIB
+             supported by this agent."
+        INDEX   { swAutoBackupPathIndex }
+        ::= { swAutoBackupFileTemplateTable 1 }
+
+    SwAutoBackupFileTemplateEntry ::=
+        SEQUENCE {
+            swAutoBackupFileTemplateIndex
+                INTEGER,   
+            swAutoBackupFileTemplateDescription
+                DisplayString,
+            swAutoBackupFileTemplateRowStatus
+                RowStatus					               
+        }
+
+    swAutoBackupFileTemplateIndex OBJECT-TYPE
+        SYNTAX  INTEGER
+        MAX-ACCESS      read-only
+        STATUS  current
+        DESCRIPTION
+                "The table index for the file entry."
+        ::= { swAutoBackupFileTemplateEntry 1 }
+
+    swAutoBackupFileTemplateDescription OBJECT-TYPE
+        SYNTAX  DisplayString  (SIZE (0..64))
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates how to generate the uploaded filename.
+             This parameter follows these rules:
+			 1.	This parameter must be the string, it can be any character contained in double quotation marks.
+			 2.	A formatted key string is a string that should be translated before being filename.
+ 			    The formatted key string is formed by % + keyword + : as follows :
+			 (a) % - Indicates the string followed this character is a formatted key string.
+			 (b) keyword - key word will be translated based on the actual value of the system.
+			     The keyword definition (A command will be refused if a unknown or unsupported key word is detected ):
+				 d: indicates the day of month (two digits 01-31)
+				 m: indicates the month (two digits 01-12)
+				 y: indicates the last two digit of year (two digits 00-99)
+				 Y: indicates the year (four digits, for ex. 2016)
+				 H: indicates the hour (two digits, 00-23)
+				 M: indicates the minutes (two digits 00-59)
+				 S: indicates the seconds (two digit 00-59)
+			 (c) : - Indicates the end of the formatted key sting.
+			    If a formatted key string is the last parameter of the command, its ending character : can be ignored.
+				The space (0x20) between % and : will be ignored.
+			 The string can be any combination of 0~9, a~z, A~Z, !@#$%^&()_+-=[]{};'.,<>`and formatted key string.
+			 \ is escape character. Special character after \ is the character itself.
+			 Such as \% is % itself, not the start indicator of a formatted key string.
+			 Space not in the formatted key string will also be encapsulated."
+        ::= { swAutoBackupFileTemplateEntry 2 }	
+
+    swAutoBackupFileTemplateRowStatus OBJECT-TYPE
+        SYNTAX   RowStatus
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the status of this entry."
+        ::= { swAutoBackupFileTemplateEntry 3 }
+
+-- -----------------------------------------------------------------------------
+-- swAutoBackupTrapState
+-- -----------------------------------------------------------------------------
+   swAutoBackupTrapState OBJECT-TYPE
+        SYNTAX  INTEGER {  
+               enabled(1),
+               disabled(2)
+               }
+        MAX-ACCESS  read-write
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the trap state of Auto Backup function on the switch."
+        ::= { swAutoBackupMIBObjects 8 }
+
+-- -----------------------------------------------------------------------------
+-- swAutoBackupBackupFileName
+-- -----------------------------------------------------------------------------
+   swAutoBackupBackupFileName OBJECT-TYPE
+        SYNTAX  DisplayString  (SIZE (0..64))
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+            "This object indicates the file name of the file which is uploaded."
+        ::= { swAutoBackupMIBObjects 9 }
+
+ -- -----------------------------------------------------------------------------
+-- AutoBackup Trap
+-- -----------------------------------------------------------------------------
+    swAutoBackupTraps				OBJECT IDENTIFIER ::= { swAutoBackupMIBObjects 10 }
+	swAutoBackupNotify			OBJECT IDENTIFIER ::= { swAutoBackupTraps 1 }
+	swAutoBackupNotifyPrefix		OBJECT IDENTIFIER ::= { swAutoBackupNotify 0 }
+
+    swAutoBackupSuccessTrap	NOTIFICATION-TYPE
+        OBJECTS		{swAutoBackupBackupFileName}
+        STATUS  	current
+        DESCRIPTION
+            "When the running configuration has been uploaded successfully."
+        ::= { swAutoBackupNotifyPrefix 1 }
+
+    swAutoBackupFailTrap	NOTIFICATION-TYPE
+        OBJECTS			{swAutoBackupBackupFileName}
+        STATUS  		current
+        DESCRIPTION
+            "When the running configuration is uploaded failed."
+        ::= { swAutoBackupNotifyPrefix 2 }
+
+
+
+END
+

@@ -1,0 +1,48 @@
+SWPRIMGMT-DGS3000-MIB	DEFINITIONS ::= BEGIN
+	IMPORTS
+		MODULE-IDENTITY			FROM SNMPv2-SMI
+		dlink-products,dlink-mgmt	FROM DLINK-ID-REC-MIB;
+	
+	dlink-dgs3000SeriesProd OBJECT IDENTIFIER ::= {dlink-products 133}
+	dgs-3000-10l			OBJECT IDENTIFIER ::= { dlink-dgs3000SeriesProd 6 } 
+	dgs-3000-20l			OBJECT IDENTIFIER ::= { dlink-dgs3000SeriesProd 7 } 
+	dgs-3000-28l			OBJECT IDENTIFIER ::= { dlink-dgs3000SeriesProd 8 } 
+	dgs-3000-28x			OBJECT IDENTIFIER ::= { dlink-dgs3000SeriesProd 10 } 
+	dgs-3000-52l			OBJECT IDENTIFIER ::= { dlink-dgs3000SeriesProd 13 } 
+	dgs-3000-52x			OBJECT IDENTIFIER ::= { dlink-dgs3000SeriesProd 14 } 
+	dgs-3000-28lp			OBJECT IDENTIFIER ::= { dlink-dgs3000SeriesProd 9 } 
+	dgs-3000-28xmp			OBJECT IDENTIFIER ::= { dlink-dgs3000SeriesProd 11 } 
+	dgs-3000-28xs			OBJECT IDENTIFIER ::= { dlink-dgs3000SeriesProd 12 } 
+    
+	dgs-3000-10l-v-b1		OBJECT IDENTIFIER ::= {dgs-3000-10l 2}
+	dgs-3000-20l-v-b1		OBJECT IDENTIFIER ::= {dgs-3000-20l 2}
+	dgs-3000-28l-v-b1		OBJECT IDENTIFIER ::= {dgs-3000-28l 2}
+	dgs-3000-28x-v-b1		OBJECT IDENTIFIER ::= {dgs-3000-28x 2}
+	dgs-3000-52l-v-b1		OBJECT IDENTIFIER ::= {dgs-3000-52l 2}
+	dgs-3000-52x-v-b1		OBJECT IDENTIFIER ::= {dgs-3000-52x 2}
+	dgs-3000-28lp-v-b1		OBJECT IDENTIFIER ::= {dgs-3000-28lp 2}
+	dgs-3000-28xmp-v-b1		OBJECT IDENTIFIER ::= {dgs-3000-28xmp 2}
+	dgs-3000-28xs-v-b1		OBJECT IDENTIFIER ::= {dgs-3000-28xs 2}
+		
+	dgs3000SeriesProd		OBJECT IDENTIFIER ::= {dlink-mgmt 133} 
+	dgs3000-10l			OBJECT IDENTIFIER ::= { dgs3000SeriesProd 6 } 
+	dgs3000-20l			OBJECT IDENTIFIER ::= { dgs3000SeriesProd 7 } 
+	dgs3000-28l			OBJECT IDENTIFIER ::= { dgs3000SeriesProd 8 } 
+	dgs3000-28x			OBJECT IDENTIFIER ::= { dgs3000SeriesProd 10 } 
+	dgs3000-52l			OBJECT IDENTIFIER ::= { dgs3000SeriesProd 13 } 
+	dgs3000-52x			OBJECT IDENTIFIER ::= { dgs3000SeriesProd 14 } 
+	dgs3000-28lp			OBJECT IDENTIFIER ::= { dgs3000SeriesProd 9 } 
+	dgs3000-28xmp			OBJECT IDENTIFIER ::= { dgs3000SeriesProd 11 } 
+	dgs3000-28xs			OBJECT IDENTIFIER ::= { dgs3000SeriesProd 12 } 
+
+	dgs3000-10l-v-b1		OBJECT IDENTIFIER ::= {dgs3000-10l 2}
+	dgs3000-20l-v-b1		OBJECT IDENTIFIER ::= {dgs3000-20l 2}
+	dgs3000-28l-v-b1		OBJECT IDENTIFIER ::= {dgs3000-28l 2}
+	dgs3000-28x-v-b1		OBJECT IDENTIFIER ::= {dgs3000-28x 2}
+	dgs3000-52l-v-b1		OBJECT IDENTIFIER ::= {dgs3000-52l 2}
+	dgs3000-52x-v-b1		OBJECT IDENTIFIER ::= {dgs3000-52x 2}
+	dgs3000-28lp-v-b1		OBJECT IDENTIFIER ::= {dgs3000-28lp 2}
+	dgs3000-28xmp-v-b1		OBJECT IDENTIFIER ::= {dgs3000-28xmp 2}
+	dgs3000-28xs-v-b1		OBJECT IDENTIFIER ::= {dgs3000-28xs 2}
+
+END
