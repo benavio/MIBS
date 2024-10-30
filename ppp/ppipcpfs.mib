@@ -1,0 +1,870 @@
+-- ####################################################
+-- Copyright (C) 2006 Aricent Inc . All Rights Reserved
+-- $Id: ppipcpfs.mib,v 1.3 2014/09/29 12:36:34 siva Exp $
+-- Description: PPP MIB.
+-- ####################################################
+
+ 
+               FSPPPEXT-MIB DEFINITIONS ::= BEGIN 
+ 
+ IMPORTS
+     MODULE-IDENTITY, OBJECT-TYPE,
+     Integer32,
+     enterprises,
+     IpAddress                     FROM SNMPv2-SMI
+     DisplayString,
+     RowStatus                     FROM SNMPv2-TC
+     ifIndex                       FROM IF-MIB;
+
+
+ futurePPPMIB MODULE-IDENTITY
+    LAST-UPDATED "200112061100Z"
+    ORGANIZATION "FUTURE SOFTWARE LIMITED"
+    CONTACT-INFO 
+    "
+    FUTURE SOFTWARE LIMITED
+    481 Mount Road
+    Madras - 600 035
+    Phone : +91-44-433 055 0
+    E-mail: support@future.futsoft.com"
+    DESCRIPTION "Future Software Proprietary MIB"
+    ::= { enterprises futuresoftware (2076) 5 } 
+
+
+
+          pppExt     OBJECT IDENTIFIER    ::= { futurePPPMIB 1 }
+          pppScalar  OBJECT IDENTIFIER    ::= { futurePPPMIB 2 }
+
+
+          pppExtLink       OBJECT IDENTIFIER ::= { pppExt 1 }
+          pppExtNcp        OBJECT IDENTIFIER ::= { pppExt 2 }
+          pppMP            OBJECT IDENTIFIER ::= { pppExt 3 }
+          pppExtSecurity   OBJECT IDENTIFIER ::= { pppExt 4 }
+          pppCCP           OBJECT IDENTIFIER ::= { pppExt 5 }
+          pppECP           OBJECT IDENTIFIER ::= { pppExt 6 }
+          pppDes           OBJECT IDENTIFIER ::= { pppExt 7 }
+          pppGzip          OBJECT IDENTIFIER ::= { pppExt 8 }
+          pppBap           OBJECT IDENTIFIER ::= { pppExt 9 }
+          pppExtLqr        OBJECT IDENTIFIER ::= { pppExt 10 }
+          pppconv          OBJECT IDENTIFIER ::= { pppExt 11 }
+
+          pppExtIp           OBJECT IDENTIFIER ::= { pppExtNcp 1 }
+          pppExtIp6          OBJECT IDENTIFIER ::= { pppExtNcp 2 }
+          pppExtMpls         OBJECT IDENTIFIER ::= { pppExtNcp 3 }
+          pppExtMuxCp        OBJECT IDENTIFIER ::= { pppExtNcp 4 }
+          pppExtBcp          OBJECT IDENTIFIER ::= { pppExtNcp 5 }
+          pppExtIpx          OBJECT IDENTIFIER ::= { pppExtNcp 6 }
+          pppBACP            OBJECT IDENTIFIER ::= { pppExtNcp 7 }
+
+
+
+    pppExtLinkConfigTable  OBJECT-TYPE
+       SYNTAX          SEQUENCE OF PppExtLinkConfigEntry
+       MAX-ACCESS not-accessible
+       STATUS     current
+       DESCRIPTION
+        "This object specifies the table with additional parameters provided for flexibility in configuring
+         LCP component of PPP."
+      ::=  {  pppExtLink 1  }
+     
+
+     pppExtLinkConfigEntry  OBJECT-TYPE
+       SYNTAX        PppExtLinkConfigEntry
+       MAX-ACCESS not-accessible
+       STATUS     current
+       DESCRIPTION
+        "This object specifies the LCP parameters for a specific PPP Interface."
+       INDEX  { ifIndex  } 
+      ::=  {   pppExtLinkConfigTable 1 }
+
+
+     
+    PppExtLinkConfigEntry  ::= 
+        SEQUENCE {
+        pppExtLinkConfigTxACFC
+             INTEGER,
+        pppExtLinkConfigRxACFC
+             INTEGER,
+        pppExtLinkConfigTxPFC
+             INTEGER,
+        pppExtLinkConfigRxPFC
+             INTEGER,
+        pppExtLinkConfigLowerIfType
+             Integer32,
+        pppExtLinkConfigHostName
+            DisplayString,
+        pppExtKeepAliveTimeOut
+            Integer32
+      }
+
+     pppExtLinkConfigTxACFC  OBJECT-TYPE
+               SYNTAX        INTEGER{
+                            disable (1),
+                            enable (2)
+                        }    
+               MAX-ACCESS    read-write
+               STATUS        current
+               DESCRIPTION
+                  "This object sets the status of ACFC (address and Control Field Compressed) Transmission. 
+		   If enabled, local PPP entity can send PPP Data packets with compressed address 
+		   and control fields(i.e local router configures ACFC option (configure_ack) in the 
+		   Configure-Request)"
+    	       DEFVAL { disable } 
+               ::= { pppExtLinkConfigEntry 1 }
+         	     
+
+	 pppExtLinkConfigRxACFC  OBJECT-TYPE
+               SYNTAX        INTEGER{
+                            disable (1),
+                            enable (2)
+                        }    
+               MAX-ACCESS    read-write
+               STATUS        current
+               DESCRIPTION
+                  "This object sets the status of ACFC reception. 
+		   If enabled, implementation can receive PPP data packets with compressed address and 
+	           control field  (i.e the local entity will send ACFC option in its Configure-Request)"
+	       DEFVAL { disable }
+               ::= { pppExtLinkConfigEntry 2 }
+	 
+	     
+         pppExtLinkConfigTxPFC  OBJECT-TYPE
+               SYNTAX        INTEGER{
+                            disable (1),
+                            enable (2)
+                        }    
+               MAX-ACCESS    read-write
+               STATUS        current
+               DESCRIPTION
+                  "This object sets the status of PFC Transmission. 
+		   If enabled, then local PPP entity can send PPP Data packets with compressed protocol field 
+		   (i.e the local  entity will configure the PFC option (configure_ack) received in 
+		   the Configure-Request)"
+	       DEFVAL { disable }
+               ::= { pppExtLinkConfigEntry 3 }
+     
+
+         pppExtLinkConfigRxPFC  OBJECT-TYPE
+               SYNTAX        INTEGER{
+                            disable (1),
+                            enable (2)
+                        }    
+               MAX-ACCESS    read-write
+               STATUS        current
+               DESCRIPTION
+                  "This object sets the status of PFC Reception. 
+		   If enabled, implementation can receive PPP data packets with compressed protocol field 
+		   (i.e the local entity will send PFC option in its Configure-Request)"
+	       DEFVAL { disable }
+               ::= { pppExtLinkConfigEntry 4 }
+	
+    pppExtLinkConfigLowerIfType  OBJECT-TYPE
+       SYNTAX        Integer32 
+       MAX-ACCESS read-write
+       STATUS     deprecated
+       DESCRIPTION
+              "This object specifies the lower layer interface type over
+              which the PPP is running.This object is deprecated. The new object is 'pppPhysifType'."
+       ::=  {   pppExtLinkConfigEntry 5 }
+
+       
+    pppExtLinkConfigHostName  OBJECT-TYPE
+       SYNTAX        DisplayString
+       MAX-ACCESS read-write
+       STATUS     current
+       DESCRIPTION
+                "This object specifies the host name field for CHAP 
+                Authentication."
+       ::=  {   pppExtLinkConfigEntry 6 }
+      
+    pppExtKeepAliveTimeOut   OBJECT-TYPE
+       SYNTAX        Integer32 (0..600)
+       MAX-ACCESS    read-write
+       STATUS        current
+       DESCRIPTION
+                "This object specifies the amount of time in seconds between the transmission of
+                 periodic Echo request packets. Echo request packets
+                 are transmitted after LCP is up to check whether the
+                 peer is alive. The peer is considered inactive if
+                 three consecutive requests do not elicit reponses.
+                 Setting a value of 0 stops periodic echo request 
+                 transmission."
+    DEFVAL    { 10 }
+     ::= { pppExtLinkConfigEntry 7 }
+
+
+         pppExtIpTable   OBJECT-TYPE
+               SYNTAX        SEQUENCE OF PppExtIpEntry
+               MAX-ACCESS    not-accessible
+               STATUS        current
+               DESCRIPTION
+                         "Additional parameters providing more flexibility in 
+                          configuring IPCP.Abbreviations used:-
+                          NBNS - NetBIOS Name Server
+                          DNS  - Domain Name System"
+               ::= { pppExtIp 1}
+
+         pppExtIpEntry   OBJECT-TYPE
+               SYNTAX        PppExtIpEntry
+               MAX-ACCESS    not-accessible
+               STATUS        current
+               DESCRIPTION
+                         "IPCP Configuration Parameters for a PPP/MP Interface"
+               INDEX     { ifIndex }
+               ::= { pppExtIpTable 1 }
+
+
+          PppExtIpEntry ::= SEQUENCE {
+               pppExtIpLocToRemoteAddress
+                    IpAddress,
+               pppExtIpRemoteToLocAddress
+                    IpAddress,
+               pppExtIpAllowVJForPeer
+                    INTEGER,
+               pppExtIpLocAddressNegFlag
+                    INTEGER, 
+               pppExtIpRemoteAddressNegFlag
+                    INTEGER, 
+               pppExtIpLocToRemotePrimaryDNSAddress
+                   IpAddress,
+               pppExtIpLocToRemoteSecondaryDNSAddress
+                    IpAddress,
+               pppExtIpLocToRemotePrimaryNBNSAddress
+                   IpAddress,
+               pppExtIpLocToRemoteSecondaryNBNSAddress
+                  IpAddress,
+               pppExtIpRemoteToLocPrimaryDNSAddress
+                   IpAddress,
+               pppExtIpRemoteToLocSecondaryDNSAddress
+                   IpAddress,
+               pppExtIpRemoteToLocPrimaryNBNSAddress
+                   IpAddress,
+               pppExtIpRemoteToLocSecondaryNBNSAddress
+                   IpAddress,
+               pppExtIpLocPrimaryDNSAddressNegFlag
+                   INTEGER,
+               pppExtIpLocSecondaryDNSAddressNegFlag
+                   INTEGER,
+               pppExtIpLocPrimaryNBNSAddressNegFlag
+                   INTEGER,
+               pppExtIpLocSecondaryNBNSAddressNegFlag
+                   INTEGER,
+               pppExtIpAllowIPHCForPeer
+                    INTEGER,
+               pppExtIpRowStatus
+                    RowStatus
+             }
+
+          pppExtIpLocToRemoteAddress   OBJECT-TYPE
+               SYNTAX        IpAddress
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This is the IPAddress which the local PPP
+                         entity sends to peer during IPCP negotiation if
+                         'pppExtIpLocAddressNegFlag' is set to `enabled`.
+                         Default value is 0.0.0.0 "
+             ::= { pppExtIpEntry 1 }
+
+   
+         pppExtIpRemoteToLocAddress   OBJECT-TYPE
+               SYNTAX        IpAddress
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This is the ipaddress assigned to peer during
+                         IPCP negotiation, if it requests. Default value 
+                         is 0.0.0.0 "
+               ::= { pppExtIpEntry 2 }
+
+        pppExtIpAllowVJForPeer OBJECT-TYPE
+                 SYNTAX     INTEGER {
+                        disable (1),
+                        enable (2)
+                        }
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This indicates whether VJ Copression is allowed
+                         for peer"
+               DEFVAL { disable }
+               ::= { pppExtIpEntry 3 }
+
+        pppExtIpLocAddressNegFlag OBJECT-TYPE
+                 SYNTAX     INTEGER {
+                        disable (1),
+                        enable (2)
+                        }
+               MAX-ACCESS    read-create
+                STATUS        current
+               DESCRIPTION
+                         "This specifies whether the local PPP entity
+                         sends IPaddress option during IPCP negotiation"
+               DEFVAL { enable }
+                ::= { pppExtIpEntry 4 }
+
+
+         pppExtIpRemoteAddressNegFlag OBJECT-TYPE
+                 SYNTAX     INTEGER {
+                        disable (1),
+                        enable (2)
+                        }
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This specifies if the local PPP entity allows
+                         the peer entity to negotiate IP address. If
+                         this is set to disabled and if the peer sends
+                         IPaddress option the local PPP entity sends a
+                          configure-reject"
+               DEFVAL { enable }
+               ::= { pppExtIpEntry 5 }
+
+
+        pppExtIpLocToRemotePrimaryDNSAddress   OBJECT-TYPE
+               SYNTAX        IpAddress
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This specifies the Primary DNS Address the local
+                         PPP entity sends to Peer PPP entity.(RFC 1877)"
+               ::= { pppExtIpEntry 6 }
+
+        pppExtIpLocToRemoteSecondaryDNSAddress   OBJECT-TYPE
+               SYNTAX        IpAddress
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This specifies the Secodary DNS Address the
+                         local PPP etity seds to Peer PPP etity.(RFC
+                         1877)"
+               ::= { pppExtIpEntry 7 }
+
+         pppExtIpLocToRemotePrimaryNBNSAddress   OBJECT-TYPE
+               SYNTAX        IpAddress
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This specifies the Primary NBNS Address the
+                         local PPP entity sends to Peer PPP entity
+                         (RFC1877)"
+               ::= { pppExtIpEntry  8 }
+
+          pppExtIpLocToRemoteSecondaryNBNSAddress   OBJECT-TYPE
+               SYNTAX        IpAddress
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This specifies the Secodary NBNS Address the
+                         local PPP etity sends to Peer PPP etity (RFC1877)"
+               ::= { pppExtIpEntry 9 }
+
+
+        pppExtIpRemoteToLocPrimaryDNSAddress   OBJECT-TYPE
+               SYNTAX        IpAddress
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This is the Primary DNS Address assigned to
+                         peer during IPCP negotiation,if it requests"
+               ::= { pppExtIpEntry 10 }
+
+        pppExtIpRemoteToLocSecondaryDNSAddress   OBJECT-TYPE
+               SYNTAX        IpAddress
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This is the Secondary DNS Address assigned to
+                         peer during IPCP negotiation,if it requests"
+               ::= { pppExtIpEntry 11 }
+
+        pppExtIpRemoteToLocPrimaryNBNSAddress   OBJECT-TYPE
+               SYNTAX       IpAddress
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This is the Primary NBNS address assigned to
+                         peer during IPCP negotiation,if it requests"
+               ::= { pppExtIpEntry  12 }
+
+         pppExtIpRemoteToLocSecondaryNBNSAddress   OBJECT-TYPE
+               SYNTAX       IpAddress
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This is the secondary NBNS address assigned
+                         to peer during IPCP negotiation."
+               ::= { pppExtIpEntry 13 }
+
+        pppExtIpLocPrimaryDNSAddressNegFlag OBJECT-TYPE
+                 SYNTAX     INTEGER {
+                        disable (1),
+                        enable (2)
+                        }
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This specifies whether the local PPP entity
+                         negotiates PrimaryDNS address during IPCP
+                         negotiation"
+               ::= { pppExtIpEntry 14 }
+
+      pppExtIpLocSecondaryDNSAddressNegFlag OBJECT-TYPE
+                 SYNTAX     INTEGER {
+                        disable (1),
+                        enable (2)
+                        }
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This specifies whether the local PPP entity
+                         negotiates SecondaryDNS address during IPCP
+                         negotiation"
+               ::= { pppExtIpEntry 15 }
+
+
+
+       pppExtIpLocPrimaryNBNSAddressNegFlag OBJECT-TYPE
+                 SYNTAX     INTEGER {
+                        disable (1),
+                        enable (2)
+                        }
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This specifies whether the local PPP entity
+                         negotiates PrimaryNBNS address during IPCP
+                         negotiation."
+               ::= { pppExtIpEntry 16 }
+
+        pppExtIpLocSecondaryNBNSAddressNegFlag OBJECT-TYPE
+                 SYNTAX     INTEGER {
+                        disable (1),
+                        enable (2)
+                        }
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This specifies whether the local PPP entity
+                         negotiates SecondaryNBNS address during IPCP
+                         negotiation."
+               ::= { pppExtIpEntry 17 }
+
+       pppExtIpAllowIPHCForPeer OBJECT-TYPE
+                 SYNTAX     INTEGER {
+                        disable (1),
+                        enable (2)
+                        }
+               MAX-ACCESS    read-create
+               STATUS        current
+               DESCRIPTION
+                         "This indicates the compressing capability of the local
+                         ppp entity. If disabled local ppp entity will reject 
+                         IP Header compression option received in a configure
+                         request"
+               DEFVAL { disable }
+               ::= { pppExtIpEntry 18 }
+
+         pppExtIpRowStatus OBJECT-TYPE
+            SYNTAX      RowStatus
+            MAX-ACCESS  read-create
+            STATUS      current
+            DESCRIPTION
+                "Rowstatus of the ppp ipcp interface. Allowed values are
+                 Create-and-Go and Destroy. After a row is successfully created 
+                 this object returns ACTIVE"
+        ::= { pppExtIpEntry 19 }
+
+
+
+pppExtIpCompConfigTable  OBJECT-TYPE
+   SYNTAX          SEQUENCE OF PppExtIpCompConfigEntry
+   MAX-ACCESS not-accessible
+   STATUS     current
+   DESCRIPTION
+    "Table Containing Parameters for  TCP/IP
+     Header Compression as specified in RFC1332 and RFC 2509"
+  ::=  {  pppExtIp 2  }
+
+
+ pppExtIpCompConfigEntry  OBJECT-TYPE
+   SYNTAX        PppExtIpCompConfigEntry
+   MAX-ACCESS not-accessible
+   STATUS     current
+   DESCRIPTION
+    "IPCP Header Compression Parameters for a PPP/MP Interface"
+   INDEX  { ifIndex   }
+  ::=  {   pppExtIpCompConfigTable 1 }
+
+
+
+PppExtIpCompConfigEntry  ::=
+    SEQUENCE {
+    pppExtIpConfigLocalMaxSlotId
+           Integer32,
+    pppExtIpConfigLocalCompSlotId
+           INTEGER,
+    pppExtIpConfigTcpSpace
+           Integer32,
+    pppExtIpConfigNonTcpSpace
+           Integer32,
+    pppExtIpConfigFMaxPeriod
+           Integer32,
+    pppExtIpConfigFMaxTime
+           Integer32,
+    pppExtIpConfigMaxHeader
+           Integer32,
+    pppExtIpConfigRtpCompression
+           INTEGER
+    }
+
+
+pppExtIpConfigLocalMaxSlotId  OBJECT-TYPE
+   SYNTAX        Integer32
+   MAX-ACCESS read-write
+   STATUS     current
+   DESCRIPTION
+      "This object is used to specify the maximum slot identifier
+      parameter that is used in the VJ-TCP IP Compression."
+  ::=  {   pppExtIpCompConfigEntry 1  }
+
+
+
+pppExtIpConfigLocalCompSlotId  OBJECT-TYPE
+   SYNTAX        INTEGER {
+      enabled    (1),
+      disabled   (2)
+      }
+   MAX-ACCESS read-write
+   STATUS     current
+   DESCRIPTION
+      "This indicates whether or not the slot identifier field may
+      be  compressed  and is used in the VJ-TCP IP Compression."
+   ::=  {   pppExtIpCompConfigEntry 2  }
+
+pppExtIpConfigTcpSpace  OBJECT-TYPE
+   SYNTAX        Integer32(0..255)
+   MAX-ACCESS read-write
+   STATUS     current
+   DESCRIPTION
+      "This object indicates the maximum value of a context identifier
+      in the space of context identifiers allocated for TCP."
+   DEFVAL { 15 }  
+   ::=  {   pppExtIpCompConfigEntry 3  }
+
+pppExtIpConfigNonTcpSpace   OBJECT-TYPE
+   SYNTAX        Integer32(0..65535)
+   MAX-ACCESS read-write
+   STATUS     current
+   DESCRIPTION
+      "This object indicates the maximum value of a context identifier
+      in the space of context identifiers allocated for non TCP."
+  DEFVAL { 15 }
+   ::=  {   pppExtIpCompConfigEntry 4  }
+
+pppExtIpConfigFMaxPeriod    OBJECT-TYPE
+   SYNTAX        Integer32 
+   MAX-ACCESS read-write
+   STATUS     current
+   DESCRIPTION
+      "This indicates Maximum interval between full headers."
+  DEFVAL { 256 }
+   ::=  {   pppExtIpCompConfigEntry 5  }
+
+pppExtIpConfigFMaxTime  OBJECT-TYPE
+   SYNTAX        Integer32 
+   MAX-ACCESS read-write
+   STATUS     current
+   DESCRIPTION
+      "This indicates Maximum time interval between full headers"
+  DEFVAL { 5 }
+   ::=  {   pppExtIpCompConfigEntry 6  }
+
+pppExtIpConfigMaxHeader OBJECT-TYPE
+   SYNTAX        Integer32
+   MAX-ACCESS read-write
+   STATUS     current
+   DESCRIPTION
+      "This indicates the largest header size in octets that may be
+      compressed."
+  DEFVAL { 168 }
+   ::=  {   pppExtIpCompConfigEntry 7  }
+
+pppExtIpConfigRtpCompression OBJECT-TYPE
+   SYNTAX        INTEGER {
+                    enable  (1),
+                    disable (2)
+                    }
+   
+   MAX-ACCESS read-write
+   STATUS     current
+   DESCRIPTION
+      "This indicates whether RTP suboption type will be included for 
+      negotiation."
+   DEFVAL { disable }
+   ::=  {   pppExtIpCompConfigEntry 8  }
+
+
+
+
+pppExtIpCompStatusTable  OBJECT-TYPE
+   SYNTAX          SEQUENCE OF PppExtIpCompStatusEntry
+   MAX-ACCESS not-accessible
+   STATUS     current
+   DESCRIPTION
+    "Table Containing PPP VJ Header Compression Negotiated values"
+  ::=  {  pppExtIp 3  }
+
+
+ pppExtIpCompStatusEntry  OBJECT-TYPE
+   SYNTAX        PppExtIpCompStatusEntry
+   MAX-ACCESS not-accessible
+   STATUS     current
+   DESCRIPTION
+    "VJ Header Compression Parameters which were negotiated for a
+    PPP/MP Interface"
+   INDEX  { ifIndex  }
+  ::=  {   pppExtIpCompStatusTable 1 }
+
+
+
+PppExtIpCompStatusEntry  ::=
+    SEQUENCE {
+    pppExtIpRemoteCompSlotId
+           INTEGER,
+    pppExtIpLocalCompSlotId
+           INTEGER
+  }
+
+pppExtIpRemoteCompSlotId  OBJECT-TYPE
+   SYNTAX        INTEGER{
+      enabled    (1),
+      disabled   (2)
+      }
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+      "This indicates whether the remote node has advertised slot idetifer
+      field compression or not. The value of this object is meaningful only
+      when the link has reached the opened  state(i.e. pppIpOperStatus
+      is opened)."
+   ::=  {   pppExtIpCompStatusEntry 1  }
+
+pppExtIpLocalCompSlotId  OBJECT-TYPE
+   SYNTAX        INTEGER{
+      enabled    (1),
+      disabled   (2)
+      }
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+      "This indicates whether the local node has advertised slot identifer
+      field compression or not. The value of this object is meaningful only
+      when the link has reached the open state (i.e. pppIpOperStatus
+      is opened)."
+  ::=  {   pppExtIpCompStatusEntry 2  }
+
+
+
+pppExtIPAddressConfigTable  OBJECT-TYPE
+   SYNTAX       SEQUENCE OF PppExtIPAddressConfigEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+         "This table contains a list of ipaddresses.If the peer PPP
+         entity requests a IPaddress it selects one from the pool.
+         This Table has significance only if 'pppExtIPAddressPoolSelector'
+         mib object is set to 'localPool'"
+   ::=  {  pppExtIp 7  }
+ 
+
+
+pppExtIPAddressConfigEntry  OBJECT-TYPE
+   SYNTAX       PppExtIPAddressConfigEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+    "A IP Address Pool Entry"
+   INDEX    { pppExtAddressPoolIndex }
+   ::=  { pppExtIPAddressConfigTable 1  }
+
+
+ 
+PppExtIPAddressConfigEntry ::= SEQUENCE {
+    pppExtAddressPoolIndex          Integer32,
+    pppExtIPAddressPoolLowerRange       IpAddress,
+    pppExtIPAddressPoolUpperRange       IpAddress,
+    pppExtIPAddressPoolStatus       INTEGER
+       
+}
+    
+
+
+pppExtAddressPoolIndex OBJECT-TYPE
+   SYNTAX        Integer32 (1..2147483647)
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+            "Pool index of this address pool."
+   ::= { pppExtIPAddressConfigEntry 1 }
+
+
+
+pppExtIPAddressPoolLowerRange   OBJECT-TYPE
+   SYNTAX       IpAddress
+   MAX-ACCESS   read-write
+   STATUS       current
+   DESCRIPTION
+            "Starting address in the address pool."
+   ::= { pppExtIPAddressConfigEntry 2 }
+
+
+
+pppExtIPAddressPoolUpperRange        OBJECT-TYPE
+   SYNTAX       IpAddress
+   MAX-ACCESS   read-write
+   STATUS       current
+   DESCRIPTION
+            "Last address in the address pool."
+   ::= { pppExtIPAddressConfigEntry 3 }
+
+
+
+pppExtIPAddressPoolStatus OBJECT-TYPE
+    SYNTAX      INTEGER {
+            up (1),
+            down (2),
+            delete (3)
+            }
+
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+           "The status of this row, by which new addresspools may
+           be created, or old pools deleted from this table.
+           Address pool is enabled only if the Lower address range
+           is less than or equal to upper address range."
+    ::= { pppExtIPAddressConfigEntry 4 }
+
+
+
+pppExtIPAddressStatusTable  OBJECT-TYPE
+   SYNTAX       SEQUENCE OF PppExtIPAddressStatusEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+           "Table containing Status of the no of free IP addresses in each pool.
+            This Table has significance only if 'pppExtIPAddressPoolSelector' mib
+            object is set to 'localPool'"
+   ::=  {  pppExtIp 8  }
+ 
+
+
+pppExtIPAddressStatusEntry  OBJECT-TYPE
+   SYNTAX       PppExtIPAddressStatusEntry
+   MAX-ACCESS   not-accessible
+   STATUS       current
+   DESCRIPTION
+    "Status Information relating to IPAddress Pool"
+   INDEX    { pppExtAddressPoolStatusIndex }
+   ::=  { pppExtIPAddressStatusTable 1  }
+
+
+ 
+PppExtIPAddressStatusEntry ::= SEQUENCE {
+        pppExtAddressPoolStatusIndex    
+            Integer32 ,
+        pppExtNoOfFreeIPAddresses
+            Integer32
+}
+
+pppExtAddressPoolStatusIndex OBJECT-TYPE
+   SYNTAX        Integer32(0..2147483647)
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+            "Pool index of this address pool."
+   ::= { pppExtIPAddressStatusEntry 1 }
+
+pppExtNoOfFreeIPAddresses OBJECT-TYPE
+   SYNTAX        Integer32
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+            "This specifies the no of Free IP addresses available in this pool."
+   ::= { pppExtIPAddressStatusEntry  2 }
+
+
+pppExtIPAddressPoolSelector     OBJECT-TYPE
+   SYNTAX        INTEGER    {
+              localPool (1),
+              radiusServer (2),
+              none (4)
+            }
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+              "This object selects a address assignment strategy."
+   DEFVAL { localPool }
+   ::= { pppScalar 1 }
+
+
+pppDebugLevelMask     OBJECT-TYPE
+   SYNTAX        Integer32 (0..2047)
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+      "This object is used to enable Trace Statements in the PPP
+      Module.
+
+      A TWO BYTE integer is used for enabling the level of tracing. 
+      Each BIT in the four byte integer, represents a particular 
+      level of Trace. 
+
+      The mapping between the bit positions & the level of trace is 
+      as follows: 
+
+      0  -  Init and Shutdown Traces
+      1  -  Management Traces
+      2  -  Data Path Traces
+      3  -  Control Plane Traces
+      4  -  Packet Dump Traces
+      5  -  Traces related to all resources except buffers
+      6  -  All Failure Traces
+      7  -  Buffer Traces
+      8  -  PPP Must Traces 
+      9  -  Debug Traces
+      10 -  Event Traces
+
+      The remaining bits are unused. Combination of trace levels are 
+      also allowed.
+
+      For example if the bits 0 and 1 are set, then the Trace
+      statements related to Init-Shutdown and management 
+      will be printed.
+
+      The user has to enter the corresponding INTEGER VALUE for the
+      bits set. For example if bits 0 and 1 are to be set then user has
+      to give the value for this object as 3.
+      
+      Setting the Trace Option to any value will cause the Debug Option
+      to be set to 0 (i.e.) the Trace Option and Debug Option are mutually
+      exclusive.
+      Based on the Bit Position value we can define the Trace level as follows.
+      position   Integer        Traceoption
+      --------   -------        ------------
+         0           1         Init and Shutdown Traces
+         1           2         Management Traces        
+         2           4         Data Path Traces
+         3           8         Control Plane Traces
+         4           16        Packet Dump Traces
+         5           32        Traces related to all resources except buffers
+         6           64        All Failure Traces
+         7           128       Buffer Traces
+         8           256       PPP Must Traces 
+         9           512       Debug Traces
+         10          1024      Event Traces 
+        And zero indicates No Trace option.Default value for this object is PPP Must Traces (256) ."
+      DEFVAL  { 256 }
+   ::= { pppScalar 2 }
+END

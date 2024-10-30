@@ -1,0 +1,106 @@
+-- ####################################################
+-- Copyright (C) 2006 Aricent Inc . All Rights Reserved
+-- $Id: pppgenfs.mib,v 1.1.1.1 2010/12/21 08:27:24 siva Exp $
+-- Description: PPP MIB.
+-- ####################################################
+
+ 
+               FSPPPEXT-MIB DEFINITIONS ::= BEGIN 
+ 
+ IMPORTS
+     MODULE-IDENTITY, OBJECT-TYPE,Integer32,
+     enterprises  FROM SNMPv2-SMI;
+
+
+ futurePPPMIB MODULE-IDENTITY
+    LAST-UPDATED "200112061100Z"
+    ORGANIZATION "FUTURE SOFTWARE LIMITED"
+    CONTACT-INFO 
+    "
+    FUTURE SOFTWARE LIMITED
+    481 Mount Road
+    Madras - 600 035
+    Phone : +91-44-433 055 0
+    E-mail: support@future.futsoft.com"
+    DESCRIPTION "Proprietary PPP MIB Implemented by Future Software"
+    ::= { enterprises futuresoftware (2076) 5 } 
+
+          pppScalar  OBJECT IDENTIFIER    ::= { futurePPPMIB 2 }
+
+pppExtIPAddressPoolSelector     OBJECT-TYPE
+   SYNTAX        INTEGER    {
+              localPool (1),
+              radiusServer (2),
+              none (4)
+            }
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+              "This selects a particular address assignment strategy.
+               default value for this object is  localPool."
+   DEFVAL { localPool }
+   ::= { pppScalar 1 }
+
+
+pppDebugLevelMask     OBJECT-TYPE
+   SYNTAX        Integer32 (0..2047)
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+      "This object is used to enable Trace Statements in the PPP
+      Module.
+
+      A TWO BYTE integer is used for enabling the level of tracing. 
+      Each BIT in the four byte integer, represents a particular 
+      level of Trace. 
+
+      The mapping between the bit positions & the level of trace is 
+      as follows: 
+
+      0  -  Init and Shutdown Traces
+      1  -  Management Traces
+      2  -  Data Path Traces
+      3  -  Control Plane Traces
+      4  -  Packet Dump Traces
+      5  -  Traces related to all resources except buffers
+      6  -  All Failure Traces
+      7  -  Buffer Traces
+      8  -  PPP Must Traces 
+      9  -  Debug Traces
+      10 -  Event Traces
+
+      The remaining bits are unused. Combination of trace levels are 
+      also allowed.
+
+      For example if the bits 0 and 1 are set, then the Trace
+      statements related to Init-Shutdown and management 
+      will be printed.
+
+      The user has to enter the corresponding INTEGER VALUE for the
+      bits set. For example if bits 0 and 1 are to be set then user has
+      to give the value for this object as 3.
+      
+      Setting the Trace Option to any value will cause the Debug Option
+      to be set to 0 (i.e.) the Trace Option and Debug Option are mutually
+      exclusive.
+      Based on the Bit Position value we can define the Trace level as follows.
+      position   Integer        Traceoption
+      --------   -------        ------------
+         0           1         Init and Shutdown Traces
+         1           2         Management Traces        
+         2           4         Data Path Traces
+         3           8         Control Plane Traces
+         4           16        Packet Dump Traces
+         5           32        Traces related to all resources except buffers
+         6           64        All Failure Traces
+         7           128       Buffer Traces
+         8           256       PPP Must Traces 
+         9           512       Debug Traces
+         10          1024      Event Traces 
+        And zero indicates No Trace option.Default value for this object is PPP Must Traces (256) ."
+      DEFVAL  { 256 }
+   ::= { pppScalar 2 }
+
+END
+
+

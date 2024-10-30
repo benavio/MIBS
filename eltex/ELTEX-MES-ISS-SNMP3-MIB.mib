@@ -1,0 +1,71 @@
+ELTEX-MES-ISS-SNMP3-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+        IpAddress, MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE
+                FROM SNMPv2-SMI
+        OBJECT-GROUP
+                FROM SNMPv2-CONF
+        RowStatus, TEXTUAL-CONVENTION, TruthValue
+                FROM SNMPv2-TC
+        eltMesIss
+                FROM ELTEX-MES-ISS-MIB
+        snmpCommunityIndex, snmpCommunityEntry
+                FROM SNMP-COMMUNITY-MIB;
+
+eltMesIssSnmp3MIB MODULE-IDENTITY
+        LAST-UPDATED "202404190000Z"
+        ORGANIZATION "Eltex Enterprise, Ltd."
+        CONTACT-INFO
+                "eltex-co.ru"
+        DESCRIPTION
+                "The MIB module for SNMP entities."
+        REVISION "202404190000Z"
+        DESCRIPTION "Added eltMesIssSnmpCommunityTable object"
+        REVISION "201911060000Z"
+        DESCRIPTION "Initial revision."
+    ::= { eltMesIss 19 }
+
+-- --------------------------
+-- Top level MIB structure --
+-- --------------------------
+
+eltMesIssSnmp3Objects       OBJECT IDENTIFIER ::= { eltMesIssSnmp3MIB 1 }
+
+eltMesIssSnmp3Globals       OBJECT IDENTIFIER ::= { eltMesIssSnmp3Objects 1 }
+
+eltMesIssWarmStartTrapControl OBJECT-TYPE
+    SYNTAX      INTEGER { enabled(1), disabled(2) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "This object is used to enable/disable warmStart trap."
+    DEFVAL      { enabled }
+    ::= { eltMesIssSnmp3Globals 1 }
+
+eltMesIssSnmpCommunityTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF EltMesIssSnmpCommunityEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+        "This table augments the snmpCommunityTable table."
+    ::= { eltMesIssSnmp3Globals 2 }
+
+eltMesIssSnmpCommunityEntry OBJECT-TYPE
+    SYNTAX      EltMesIssSnmpCommunityEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Contains management IPv4 address."
+    AUGMENTS { snmpCommunityEntry }
+    ::= { eltMesIssSnmpCommunityTable 1 }
+
+EltMesIssSnmpCommunityEntry ::= SEQUENCE {
+    eltMesIssSnmpCommunityIpv4MgmtAddr IpAddress
+}
+
+eltMesIssSnmpCommunityIpv4MgmtAddr OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Management IPv4 address."
+    ::= { eltMesIssSnmpCommunityEntry 1 }
+
+END

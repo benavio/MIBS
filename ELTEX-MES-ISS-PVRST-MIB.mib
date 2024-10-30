@@ -1,0 +1,69 @@
+ELTEX-MES-ISS-PVRST-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    OBJECT-TYPE, MODULE-IDENTITY
+            FROM SNMPv2-SMI
+    eltMesIssBridgeMIBObjects
+            FROM ELTEX-MES-ISS-BRIDGE-MIB
+    fsPvrstInstBridgeEntry
+            FROM ARICENT-PVRST-MIB;
+
+
+eltMesIssPvrstMIB MODULE-IDENTITY
+    LAST-UPDATED "202307200000Z"
+    ORGANIZATION "Eltex Enterprise, Ltd."
+    CONTACT-INFO
+            "eltex-co.ru"
+    DESCRIPTION
+            "MIB extensions for PVRST protocol."
+    ::= { eltMesIssBridgeMIBObjects 2 }
+
+-- Top level MIB structure
+
+eltMesIssPvrstMIBObjects      OBJECT IDENTIFIER ::= { eltMesIssPvrstMIB 1 }
+
+-- MIB Groups
+
+eltMesIssPvrst     OBJECT IDENTIFIER   ::= { eltMesIssPvrstMIBObjects 1 }
+
+-- ========================================================================== --
+--                            PVRST Instance Table                            --
+-- ========================================================================== --
+
+eltMesIssPvrstInstBridgeTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF EltMesIssPvrstInstBridgeEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table containing Bridge Information specific to Spanning
+         Tree Instance."
+    ::= { eltMesIssPvrst 1 }
+
+eltMesIssPvrstInstBridgeEntry OBJECT-TYPE
+    SYNTAX      EltMesIssPvrstInstBridgeEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Entry indicating the Bridge Information."
+    AUGMENTS { fsPvrstInstBridgeEntry }
+    ::= { eltMesIssPvrstInstBridgeTable 1 }
+
+EltMesIssPvrstInstBridgeEntry ::=
+    SEQUENCE {
+        eltMesIssPvrstInstEnableStatus
+            INTEGER
+    }
+
+eltMesIssPvrstInstEnableStatus OBJECT-TYPE
+    SYNTAX      INTEGER {
+        enable(1),
+        disable(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The administrative value for the PVST instance
+         to configure PVRST enable/disable this instance."
+    ::= { eltMesIssPvrstInstBridgeEntry 1 }
+
+END

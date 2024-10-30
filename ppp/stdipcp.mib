@@ -1,0 +1,105 @@
+-- ####################################################
+-- Copyright (C) 2006 Aricent Inc . All Rights Reserved
+-- $Id: stdipcp.mib,v 1.1.1.1 2010/12/21 08:27:24 siva Exp $
+-- Description: PPP MIB.
+-- ####################################################
+
+ PPP-IP-NCP-MIB  DEFINITIONS   ::= BEGIN
+
+ IMPORTS
+     MODULE-IDENTITY, OBJECT-TYPE, transmission 
+                                       FROM SNMPv2-SMI
+     ifIndex                           FROM IF-MIB;
+
+
+      pppIp MODULE-IDENTITY
+        LAST-UPDATED "200112061100Z"
+        ORGANIZATION "FUTURE SOFTWARE LIMITED"
+
+        CONTACT-INFO 
+            "
+            FUTURE SOFTWARE LIMITED
+            481 Mount Road
+            Madras - 600 035
+            Phone : +91-44-433 055 0
+            E-mail: support@future.futsoft.com"
+
+         DESCRIPTION
+            " Implementation of this group is current for all PPP 
+              implementations that support operating IP over PPP."
+
+      ::=  {transmission ppp (23)  3 } 
+
+          --
+          -- The PPP IP Configuration table.
+          -- This is a separate table in order to facilitate
+          -- placing these variables in a separate MIB view.
+          --
+
+          pppIpConfigTable   OBJECT-TYPE
+               SYNTAX    SEQUENCE OF PppIpConfigEntry
+               MAX-ACCESS    not-accessible
+               STATUS    current
+               DESCRIPTION
+                         "Table containing configuration variables for
+                         the IPCP for the local PPP entity."
+               ::= { pppIp 1 }
+
+
+          pppIpConfigEntry   OBJECT-TYPE
+               SYNTAX    PppIpConfigEntry
+               MAX-ACCESS    not-accessible
+               STATUS    current
+               DESCRIPTION
+                         "IPCP information for a particular PPP link."
+               INDEX     { ifIndex }
+               ::= { pppIpConfigTable 1 }
+
+
+          PppIpConfigEntry ::= SEQUENCE {
+               pppIpConfigAdminStatus
+                    INTEGER,
+               pppIpConfigCompression
+                    INTEGER
+          }
+
+
+          pppIpConfigAdminStatus   OBJECT-TYPE
+               SYNTAX    INTEGER {open(1), close(2)}
+               MAX-ACCESS    read-write
+               STATUS    current
+               DESCRIPTION
+                         "The immediate desired status of the IP network
+                         protocol. Setting this object to open will
+                         inject an administrative open event into the IP
+                         network protocol's finite state machine.
+                         Setting this object to close will inject an
+                         administrative close event into the IP network
+                         protocol's finite state machine."
+               ::= { pppIpConfigEntry 1 }
+
+
+          pppIpConfigCompression   OBJECT-TYPE
+               SYNTAX    INTEGER {
+                         none(1),
+                         vjtcp(2),
+                         iphc(3)
+                    }
+               MAX-ACCESS    read-write
+               STATUS    current
+               DESCRIPTION
+                         "If none(1) then the local node will not
+                         attempt to negotiate any IP Compression option.
+                         Otherwise, the local node will attempt to
+                         negotiate compression mode indicated by the
+                         enumerated value. Changing this object will
+                         have effect when the link is next restarted."
+               REFERENCE
+                         "Section 4.0, Van Jacobson TCP/IP Header
+                         Compression of RFC1332."
+                  DEFVAL    { none }
+               ::= { pppIpConfigEntry 2 }
+
+
+END
+

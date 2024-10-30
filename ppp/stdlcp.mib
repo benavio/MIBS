@@ -1,0 +1,161 @@
+-- ####################################################
+-- Copyright (C) 2006 Aricent Inc . All Rights Reserved
+-- $Id: stdlcp.mib,v 1.2 2011/04/11 11:08:39 siva Exp $
+-- Description: PPP MIB.
+-- ####################################################
+
+ PPP-LCP-MIB DEFINITIONS  ::= BEGIN
+
+ IMPORTS
+     MODULE-IDENTITY, OBJECT-TYPE, 
+     Integer32, 
+     transmission       FROM SNMPv2-SMI
+     ifIndex  FROM IF-MIB;
+
+
+      ppp MODULE-IDENTITY
+        LAST-UPDATED "200112061100Z"
+        ORGANIZATION "FUTURE SOFTWARE LIMITED"
+
+        CONTACT-INFO 
+            "
+            FUTURE SOFTWARE LIMITED
+            481 Mount Road
+            Madras - 600 035
+            Phone : +91-44-433 055 0
+            E-mail: support@future.futsoft.com"
+
+         DESCRIPTION
+            " The MIB module for PPP. "
+
+      ::=  {transmission 23 } 
+
+
+          pppLcp OBJECT IDENTIFIER ::= { ppp 1 }
+
+
+          -- The individual groups within the PPP-LCP-MIB
+
+               pppLink      OBJECT IDENTIFIER ::= { pppLcp 1 }
+
+          -- the Transmission group
+
+          -- Based on the transmission media underlying each interface
+          -- on a system, the corresponding portion of the Transmission
+          -- group is current for that system.
+
+          -- When Internet-standard definitions for managing
+          -- transmission media are defined, the transmission group is
+          -- used to provide a prefix for the names of those objects.
+
+          -- Typically, such definitions reside in the experimental
+          -- portion of the MIB until they are "proven", then as a
+          -- part of the Internet standardization process, the
+          -- definitions are accordingly elevated and a new object
+          -- identifier, under the transmission group is defined. By
+          -- convention, the name assigned is:
+          --
+          --     type OBJECT IDENTIFIER    ::= { transmission number }
+          --
+          -- where "type" is the symbolic value used for the media in
+          -- the ifType column of the ifTable object, and "number" is
+          -- the actual integer value corresponding to the symbol.
+
+       --  PPP MIB
+
+          -- 4.1.  PPP Link Group
+
+
+          --
+          -- The PPP Link Group. Implementation of this
+          -- group is current for all PPP entities.
+          --
+
+          pppLinkConfigTable   OBJECT-TYPE
+               SYNTAX    SEQUENCE OF PppLinkConfigEntry
+               MAX-ACCESS    not-accessible
+               STATUS    current
+               DESCRIPTION
+                         "A table containing the LCP configuration
+                         parameters for this PPP Link. These variables
+                         represent the initial configuration of the PPP
+                         Link. The actual values of the parameters may
+                         be changed when the link is brought up via the
+                         LCP options negotiation mechanism."
+               ::= { pppLink 1 }
+
+
+          pppLinkConfigEntry   OBJECT-TYPE
+               SYNTAX    PppLinkConfigEntry
+               MAX-ACCESS    not-accessible
+               STATUS    current
+               DESCRIPTION
+                         "Configuration information about a particular
+                         PPP Link."
+               INDEX     { ifIndex }
+               ::= { pppLinkConfigTable 1 }
+
+
+          PppLinkConfigEntry ::= SEQUENCE {
+               pppLinkConfigInitialMRU
+                    Integer32,
+               pppLinkConfigMagicNumber
+                    INTEGER,
+               pppLinkConfigFcsSize
+                    Integer32
+               }
+
+
+          pppLinkConfigInitialMRU   OBJECT-TYPE
+               SYNTAX    Integer32(0..2147483647)
+               MAX-ACCESS    read-write
+               STATUS    current
+               DESCRIPTION
+                         "The initial Maximum Receive Unit (MRU) that
+                         the local PPP entity will advertise to the
+                         remote entity. If the value of this variable is
+                         0 then the local PPP entity will not advertise
+                         any MRU to the remote entity and the default
+                         MRU will be assumed. Changing this object will
+                         have effect when the link is next restarted."
+               REFERENCE
+                         "Section 7.2, Maximum Receive Unit of RFC1331."
+               DEFVAL    { 1500 }
+               ::= { pppLinkConfigEntry 1 }
+
+          pppLinkConfigMagicNumber   OBJECT-TYPE
+               SYNTAX    INTEGER {false (1), true (2)}
+               MAX-ACCESS    read-write
+               STATUS    current
+               DESCRIPTION
+                         "If true(2) then the local node will attempt to
+                         perform Magic Number negotiation with the
+                         remote node. If false(1) then this negotiation
+                         is not performed. In any event, the local node
+                         will comply with any magic number negotiations
+                         attempted by the remote node, per the PPP
+                         specification. Changing this object will have
+                         effect when the link is next restarted."
+               REFERENCE
+                         "Section 7.6, Magic Number, of RFC1331."
+                 DEFVAL    { false }
+               ::= { pppLinkConfigEntry 2 }
+
+
+          pppLinkConfigFcsSize   OBJECT-TYPE
+               SYNTAX    Integer32 (0..128)
+               MAX-ACCESS    read-write
+               STATUS    current
+               DESCRIPTION
+                         "The size of the FCS, in bits, the local node
+                         will attempt to negotiate for use with the
+                         remote node. Regardless of the value of this
+                         object, the local node will comply with any FCS
+                         size negotiations initiated by the remote node,
+                         per the PPP specification. Changing this object
+                         will have effect when the link is next
+                         restarted."
+                  DEFVAL    { 16 }
+               ::= { pppLinkConfigEntry 3 }
+
+END

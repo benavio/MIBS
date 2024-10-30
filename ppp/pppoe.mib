@@ -1,0 +1,301 @@
+-- ####################################################
+-- Copyright (C) 2006 Aricent Inc . All Rights Reserved
+-- $Id: pppoe.mib,v 1.3 2014/09/29 12:36:34 siva Exp $
+-- Description: PPP MIB.
+-- ####################################################
+
+PPPOE-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE,
+        Integer32,
+        enterprises
+            FROM SNMPv2-SMI
+        InterfaceIndex
+            FROM IF-MIB
+        RowStatus, TruthValue
+            FROM SNMPv2-TC;
+
+-- Begin managed object definitions here...
+
+pPPoE   MODULE-IDENTITY
+           LAST-UPDATED    "200202191000Z"
+           ORGANIZATION    "Future Software Ltd."
+           CONTACT-INFO
+              "FUTURE SOFTWARE LIMITED
+               481 Mount Road
+               Madras - 600 035
+               Phone : +91-44-433 055 0
+               E-mail: support@future.futsoft.com "
+
+           DESCRIPTION
+        "The MIB module that describes managed objects of
+        general use by the PPP over Ethernet Protocol."
+
+           ::= { enterprises futuresoftware (2076) 37 }
+
+-- Top level MIB structure
+
+   pPPoEObjects      OBJECT IDENTIFIER ::= { pPPoE 1 }
+
+-- MIB Groups
+
+   pPPoEConfig       OBJECT IDENTIFIER ::= { pPPoEObjects 1 }
+   pPPoEBindings     OBJECT IDENTIFIER ::= { pPPoEObjects 2 }
+   pPPoEVlan         OBJECT IDENTIFIER ::= { pPPoEObjects 3 }
+
+pPPoEMode	 OBJECT-TYPE
+   SYNTAX       INTEGER {
+			server	(1),
+			client	(2)
+		}
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+        "This object sets the PPPoE mode to server or client."
+    DEFVAL    { 2 }
+    ::= { pPPoEConfig 1 }
+
+pPPoEConfigMaxTotalSessions   OBJECT-TYPE
+    SYNTAX  Integer32
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "The number of maximum allowed PPPoE sessions"
+    ::= { pPPoEConfig 2 }
+
+pPPoEConfigMaxSessionsPerHost   OBJECT-TYPE
+    SYNTAX  Integer32
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "The number of maximum allowed PPPoE sessions from a
+        peer"
+    ::= { pPPoEConfig 3 }
+
+pPPoEConfigPADITxInterval   OBJECT-TYPE
+    SYNTAX  Integer32 (1..60)
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "The initial PADI ReTransmit Interval"
+    DEFVAL    { 2 }
+    ::= { pPPoEConfig 4 }
+
+pPPoEConfigPADRMaxNumberOfRetries   OBJECT-TYPE
+    SYNTAX  Integer32 (1..30)
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "The number of times the Host retries sending PADR before reverting back to PADI"
+    DEFVAL    { 5 }
+    ::= { pPPoEConfig 5 }
+
+pPPoEConfigPADRWaitTime   OBJECT-TYPE
+    SYNTAX  Integer32 (1..60)
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "The time n seconds the AC should wait for PADR after  
+         Sending a PADO to a Host"
+    DEFVAL    { 60 }
+    ::= { pPPoEConfig 6 }
+
+pPPoEHostUniqueEnabled OBJECT-TYPE
+    SYNTAX     TruthValue
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+        "Whether pppoe Host-Unique tag is enabled or not."
+    DEFVAL    { false }
+    ::= { pPPoEConfig 7 }
+
+pPPoEACName   OBJECT-TYPE
+    SYNTAX  OCTET STRING (SIZE (1..32))
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "string which uniquley identifies the particular
+	 Access concentrator."
+    ::= { pPPoEConfig 8 }
+
+-- The PPPoE service names table
+
+pPPoEConfigServiceNameTable OBJECT-TYPE
+    SYNTAX     SEQUENCE OF PPPoEConfigServiceNameEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "The table listing the service names configured for
+        PPPoE."
+    ::= { pPPoEConfig 9 }
+
+pPPoEConfigServiceNameEntry OBJECT-TYPE
+    SYNTAX     PPPoEConfigServiceNameEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "An entry representing service name enabled for
+        PPPoE"
+    INDEX      { pPPoEConfigServiceName }
+    ::= { pPPoEConfigServiceNameTable 1 }
+
+PPPoEConfigServiceNameEntry ::= SEQUENCE {
+    pPPoEConfigServiceName       OCTET STRING,
+    pPPoEConfigServiceRowStatus   RowStatus }
+
+pPPoEConfigServiceName OBJECT-TYPE
+    SYNTAX    OCTET STRING (SIZE (1..32))
+    MAX-ACCESS not-accessible 
+    STATUS     current
+    DESCRIPTION
+        "The service name enabled for PPPoE."
+::= { pPPoEConfigServiceNameEntry 1 }
+
+pPPoEConfigServiceRowStatus   OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "This object is used to create and delete rows from
+        the pPPoEServiceTable.  It can be set only to the
+        value of createAndGo and destroy.  It returns only
+        the value of active."
+::= { pPPoEConfigServiceNameEntry 2 }
+
+
+-- The PPPoE Bindings Table
+
+pPPoEBindingsTable OBJECT-TYPE
+    SYNTAX     SEQUENCE OF PPPoEBindingsEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "The table listing the Ethernet interfaces on which
+        PPPoE is bound."
+    ::= { pPPoEBindings 1 }
+
+pPPoEBindingsEntry OBJECT-TYPE
+    SYNTAX     PPPoEBindingsEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "An entry representing an interface on which PPPoE is
+        bound."
+    INDEX      { pPPoEBindingsIndex }
+    ::= { pPPoEBindingsTable 1 }
+
+
+PPPoEBindingsEntry ::= SEQUENCE {
+    pPPoEBindingsIndex        		     InterfaceIndex,
+    pPPoEBindingsEnabled    		     TruthValue }
+
+pPPoEBindingsIndex OBJECT-TYPE
+    SYNTAX          InterfaceIndex
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "This value for this object is equal to the value of
+        ifIndex of the Interfaces MIB for the Ethernet
+        interfaces."
+    ::= { pPPoEBindingsEntry 1 }
+
+pPPoEBindingsEnabled OBJECT-TYPE
+   SYNTAX       TruthValue
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+        "Whether pppoe is enabled or not."
+	::= { pPPoEBindingsEntry 2 }
+
+-- The PPPOE Vlan Table
+
+pPPoEVlanTable OBJECT-TYPE
+    SYNTAX     SEQUENCE OF PPPoEVlanEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "The table listing the PPP interface and vlan value."
+    ::= { pPPoEVlan 1 }
+
+pPPoEVlanEntry OBJECT-TYPE
+    SYNTAX     PPPoEVlanEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "An entry representing an PPP interface and type of vlan value."
+    INDEX      { pPPoEVlanPPPIndex }
+    ::= { pPPoEVlanTable 1 }
+
+
+PPPoEVlanEntry ::= SEQUENCE {
+    pPPoEVlanPPPIndex    InterfaceIndex,
+    pPPoEVlanID          Integer32,
+    pPPoECFI             INTEGER,
+    pPPoECoS             Integer32,
+    pPPoEVlanRowStatus   RowStatus
+    }
+
+pPPoEVlanPPPIndex OBJECT-TYPE
+    SYNTAX          InterfaceIndex
+    MAX-ACCESS      not-accessible
+    STATUS          current
+    DESCRIPTION
+        "This value for this object is equal to the value of PPP interfaces."
+    ::= { pPPoEVlanEntry 1 }
+
+pPPoEVlanID  OBJECT-TYPE
+    SYNTAX  Integer32 (1..4094)
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "VLAN ID used for the PPP interface"
+
+    ::= { pPPoEVlanEntry 2 }
+
+pPPoECFI  OBJECT-TYPE
+    SYNTAX  INTEGER
+    {
+            disable (0),
+            enable (1)
+    }
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "This object sets the CFI bit used for configuring VLAN encapsulation"
+    DEFVAL    { 0 }
+
+    ::= { pPPoEVlanEntry 3 }
+
+pPPoECoS  OBJECT-TYPE
+    SYNTAX   Integer32 (0..7)
+    MAX-ACCESS  read-write
+    STATUS  current
+    DESCRIPTION
+        "Cos Value used for configuring priority for VLAN encapsulation"
+
+    ::= { pPPoEVlanEntry 4 }
+
+pPPoEVlanRowStatus  OBJECT-TYPE
+    SYNTAX  RowStatus
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "Row status for the VLAN encapsulation in PPP interface"
+
+    ::= { pPPoEVlanEntry 5 }
+
+
+END
+
+
+
+
+
+
+
+
+
+
+
+

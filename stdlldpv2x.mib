@@ -1,0 +1,40 @@
+-- This MIB defines the Module-Identity for lldpV2Xdot1MIB,from which 
+-- the Standard DCBX MIB (LLDP-EXT-DOT1-DCBX-MIB) is branched.This MIB 
+-- will only be used for successful loading of the Standatd DCBX MIB 
+-- (LLDP-EXT-DOT1-DCBX-MIB ).
+
+LLDP-EXT-DOT1-V2-MIB DEFINITIONS ::= BEGIN
+
+
+IMPORTS
+    MODULE-IDENTITY 
+        FROM SNMPv2-SMI
+    lldpExtensions 
+        FROM LLDP-MIB;
+
+lldpV2Xdot1MIB MODULE-IDENTITY
+    LAST-UPDATED "200910120000Z"
+    ORGANIZATION "ARICENT COMMUNICATIONS SOFTWARE"
+    CONTACT-INFO 
+            " ARICENT COMMUNICATIONS SOFTWARE
+        3460 Hillview Avenue,
+        Palo Alto, CA 94304-1388, USA,
+        Phone : +1-650-391-1088
+        E-mail:support@aricent.com"
+
+    DESCRIPTION
+            "The LLDP Management Information Base extension module for
+            IEEE 802.1 organizationally defined discovery information.
+
+            In order to assure the uniqueness of the LLDP-MIB,
+            lldpV2Xdot1MIB is branched from lldpExtensions using OUI value
+            as the node."
+
+    REVISION        "200910120000Z"
+    DESCRIPTION
+         "The proprietary extension of LLDP MIB module to compile stddcb mib."
+   ::= { lldpExtensions 32962 }
+--   ::= { iso std(0) iso8802(8802) ieee802dot1(1) ieee802dot1mibs(1) lldpMIB(2) lldpObjects(1) lldpExtensions(5) 32962 }
+--   ::= { iso std(0) iso8802(8802) ieee802dot1(1) ieee802dot1mibs(1) lldpMIB(2)													  lldpObjects(1) lldpExtensions(5) 32962}
+
+END

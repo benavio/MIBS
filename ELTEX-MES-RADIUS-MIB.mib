@@ -1,0 +1,74 @@
+ELTEX-MES-RADIUS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE
+        FROM SNMPv2-SMI
+    eltMesIss
+        FROM ELTEX-MES-ISS-MIB
+    fsRadExtServerEntry
+        FROM ARICENT-RADIUS-EXT-MIB;
+
+eltMesIssRadiusMIB MODULE-IDENTITY
+        LAST-UPDATED "202404020000Z"
+        ORGANIZATION "Eltex Enterprise, Ltd."
+        CONTACT-INFO
+                "eltex-co.ru"
+        DESCRIPTION
+                "Eltex MIB extensions for Radius Server."
+        REVISION "202404020000Z"
+        DESCRIPTION "Initial revision."
+    ::= { eltMesIss 35 }
+
+-- ================================================================================= --
+--                              Top level MIB structure                              --
+-- ================================================================================= --
+
+eltMesIssRadiusObjects       OBJECT IDENTIFIER ::= { eltMesIssRadiusMIB 1 }
+
+-- ================================================================================= --
+--                                    MIB Groups                                     --
+-- ================================================================================= --
+
+eltMesIssRadiusExtConfig        OBJECT IDENTIFIER ::= { eltMesIssRadiusObjects 2 }
+
+eltMesIssRadiusExtGlobals       OBJECT IDENTIFIER ::= { eltMesIssRadiusObjects 1 }
+
+-- ================================================================================= --
+--                           Radius server table extension                           --
+-- ================================================================================= --
+
+eltMesIssRadExtServerTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF EltMesIssRadiusExtEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "This is table augments the fsRadExtServerTable."
+    ::= { eltMesIssRadiusExtConfig 1 }
+
+eltMesIssRadiusExtEntry OBJECT-TYPE
+    SYNTAX EltMesIssRadiusExtEntry
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Contains an additional usage option for radius server."
+    AUGMENTS { fsRadExtServerEntry }
+    ::= { eltMesIssRadExtServerTable 1 }
+
+EltMesIssRadiusExtEntry ::= SEQUENCE {
+    eltMesIssRadiusExtUsage  BITS
+}
+
+eltMesIssRadiusExtUsage OBJECT-TYPE
+    SYNTAX BITS {
+        login (0),
+        enable (1),
+        dot1x (2),
+        igmp (3)
+    }
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "This object specifies which types of requests this server can be used for."
+    ::= { eltMesIssRadiusExtEntry 1 }
+
+END

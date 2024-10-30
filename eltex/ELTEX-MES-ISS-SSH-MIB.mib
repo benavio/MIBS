@@ -1,0 +1,62 @@
+ELTEX-MES-ISS-SSH-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE
+        FROM SNMPv2-SMI
+    eltMesIss
+        FROM ELTEX-MES-ISS-MIB;
+
+eltMesIssSshMIB MODULE-IDENTITY
+    LAST-UPDATED "202401250000Z"
+    ORGANIZATION "Eltex Enterprise, Ltd."
+    CONTACT-INFO
+        "eltex-co.ru"
+    DESCRIPTION
+        "This private MIB module contains Eltex SSH definitions."
+    REVISION "202401250000Z"
+    DESCRIPTION "Added eltMesIssSshKexList object"
+    REVISION "202204190000Z"
+    DESCRIPTION "Initial revision."
+    ::= { eltMesIss 30 }
+
+-- Top level MIB structure
+
+eltMesIssSshObjects        OBJECT IDENTIFIER ::= { eltMesIssSshMIB 1 }
+
+-- MIB Groups
+
+eltMesIssSshGlobals        OBJECT IDENTIFIER ::= { eltMesIssSshObjects 1 }
+
+-- Low level Mib structure
+
+-- -----------------------------------------------------------------------------
+-- SSH global variables
+-- -----------------------------------------------------------------------------
+
+eltMesIssSshAuthTypes OBJECT-TYPE
+    SYNTAX BITS {
+        password(0),
+        publickey(1)
+    }
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+          "This object is to configure the SSH server authentication types list."
+    DEFVAL  { { password } }
+    ::= { eltMesIssSshGlobals 1}
+
+eltMesIssSshKexList OBJECT-TYPE
+    SYNTAX BITS {
+        dh-group-exchange-sha256(0),
+        dh-group-exchange-sha1(1),
+        dh-group14-sha1(2),
+        dh-group1-sha1(3)
+    }
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "This object is to configure the SSH server key exchange algorithms list."
+    DEFVAL  { { dh-group-exchange-sha256, dh-group-exchange-sha1, dh-group14-sha1, dh-group1-sha1 } }
+    ::= { eltMesIssSshGlobals 2 }
+
+END

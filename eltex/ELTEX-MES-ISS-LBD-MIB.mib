@@ -1,0 +1,70 @@
+ELTEX-MES-ISS-LBD-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    OBJECT-TYPE, MODULE-IDENTITY, Integer32
+            FROM SNMPv2-SMI
+    eltMesIss
+            FROM ELTEX-MES-ISS-MIB
+    fsLbdPortEntry
+            FROM ARICENT-LBD-MIB;
+
+
+eltMesIssLbdMIB MODULE-IDENTITY
+    LAST-UPDATED "202401120000Z"
+    ORGANIZATION "Eltex Enterprise, Ltd."
+    CONTACT-INFO
+            "eltex-co.ru"
+    DESCRIPTION
+            "MIB extensions for loopback detection feature."
+    ::= { eltMesIss 34 }
+
+-- Top level MIB structure
+
+eltMesIssLbdMIBObjects OBJECT IDENTIFIER ::= { eltMesIssLbdMIB 1 }
+
+-- MIB Groups
+
+eltMesIssLbdConfig OBJECT IDENTIFIER ::= { eltMesIssLbdMIBObjects 1 }
+
+-- ========================================================================== --
+--                          Loopback-detection Table                          --
+-- ========================================================================== --
+
+eltMesIssLbdPortTable OBJECT-TYPE
+    SYNTAX SEQUENCE OF EltMesIssLbdPortEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "This table contains Loop Back Detection related configuration and
+         statistics at port level."
+    ::= { eltMesIssLbdConfig 1 }
+
+eltMesIssLbdPortEntry OBJECT-TYPE
+    SYNTAX      EltMesIssLbdPortEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry in this table contains Loop Back Detection related
+         configuration and statistics for a port."
+    AUGMENTS { fsLbdPortEntry }
+    ::= { eltMesIssLbdPortTable 1 }
+
+EltMesIssLbdPortEntry ::=
+    SEQUENCE {
+        eltMesIssLbdPktRxOnPort
+            Integer32
+    }
+
+eltMesIssLbdPktRxOnPort OBJECT-TYPE
+    SYNTAX        Integer32
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "This object indicates the 'port-number' that received LBD PDU.
+         This port-number may be the potential port causing the loop
+         condition in the network. This object is valid only when
+         'loopback' condition is detected on a port."
+
+    ::= { eltMesIssLbdPortEntry 1 }
+
+END
